@@ -27,8 +27,6 @@
 /*
  * Define any missing types from this OS's standard headers, and include
  * those standard headers if required.
- *
- * This is for Brett
  */
 
 #ifndef __SWDIAG_XOS_H__
