@@ -27,7 +27,7 @@
 
 /**
 @page quickguide Quick Start Guide
-For those in a hurry here are some small examples showing how to implement
+For those in a hurry this page contains examples showing how to implement
 simple diagnostics. These will be further developed in later examples to take
 advantage of different software diagnostic functionality.
 
