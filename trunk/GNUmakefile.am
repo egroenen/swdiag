@@ -34,7 +34,7 @@ libswdiag_la_SOURCES = \
     src/swdiag_util.c                    \
     src/swdiag_util.h                    \
     src/swdiag_xos.c                     \
-    src/swdiag_xos.h                     \
+    src/swdiag_xos.h                    
 
 if ADD_RPC
 #
