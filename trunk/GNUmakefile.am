@@ -44,14 +44,14 @@ libswdiag_la_SOURCES += \
     src/swdiag_unix_rpc.h                \
     src/swdiag_unix_rpc_xdr.c            \
     src/swdiag_unix_rpc_clnt.c           \
-    src/swdiag_unix_roc_svc.c            \
+    src/swdiag_unix_rpc_svc.c            \
     src/swdiag_unix_rpc.x
 
 CLEANFILES = \
     src/swdiag_unix_rpc.h                \
     src/swdiag_unix_rpc_xdr.c            \
     src/swdiag_unix_rpc_clnt.c           \
-    src/swdiag_unix_roc_svc.c            
+    src/swdiag_unix_rpc_svc.c            
 endif
 
 libswdiag_la_SOURCES += \

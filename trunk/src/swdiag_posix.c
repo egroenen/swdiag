@@ -29,6 +29,12 @@
  * A set of OS'es (but not all) would include this module in the build.
  */
 
+//#define _POSIX_C_SOURCE 200112L
+
+#ifdef __GNUC__
+#define _XOPEN_SOURCE 500
+#endif
+
 #include <signal.h>
 #include <string.h>
 #include <errno.h>
@@ -76,7 +82,7 @@ struct xos_timer_t_ {
     struct xos_timer_t_ *next;
     boolean started;
     xos_timer_expiry_fn_t *expiry_fn;
-#if defined(_POSIX_TIMERS) && (_POSIX_TIMERS - 200112L) > 0L
+#if defined(_POSIX_TIMERS)
     timer_t id;
 #elif __APPLE__
     struct itimerval id;
@@ -107,7 +113,7 @@ static timer_queue_t timer_queue;
  */
 void swdiag_xos_time_set_now (xos_time_t *time_now)
 {
-#if defined(_POSIX_TIMERS) && (_POSIX_TIMERS - 200112L) > 0L
+#if defined(_POSIX_TIMERS) 
     struct timespec ts;
 
     if (clock_gettime(CLOCK_REALTIME, &ts) != 0) {
@@ -135,7 +141,7 @@ void swdiag_xos_time_set_now (xos_time_t *time_now)
 /*
  * Walk the list of timers and check which ones have expired
  */
-#if defined(_POSIX_TIMERS) && (_POSIX_TIMERS - 200112L) > 0L
+#if defined(_POSIX_TIMERS) 
 static void timer_expired (int isignal)
 {
     xos_timer_t *timer;
@@ -222,7 +228,7 @@ xos_timer_t *swdiag_xos_timer_create (xos_timer_expiry_fn_t *fn, void *context)
 }
 #endif
 
-#if defined(_POSIX_TIMERS) && (_POSIX_TIMERS - 200112L) > 0L
+#if defined(_POSIX_TIMERS) 
 /*
  * Start the given timer with the given expiry delay
  */
@@ -282,7 +288,7 @@ void xos_timer_stop (xos_timer_t *timer)
     /* to write */
 }
 
-#if defined(_POSIX_TIMERS) && (_POSIX_TIMERS - 200112L) > 0L
+#if defined(_POSIX_TIMERS) 
 /*
  * Delete the timer
  */
