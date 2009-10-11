@@ -1584,7 +1584,7 @@ boolean swdiag_obj_instance_validate (obj_instance_t *instance,
     boolean retval = TRUE;
     
     if (!instance || instance == (void*)0x0d0d0d0d || !instance->obj) {
-        swdiag_error("Validate:%s: Invalid instance=0x%x",
+        swdiag_error("Validate:%s: Invalid instance=0x%p",
                      (instance && instance != (void*)0x0d0d0d0d) ? instance->name : "", instance);
         retval = FALSE;
     } else {
@@ -1610,7 +1610,7 @@ boolean swdiag_obj_validate (obj_t *obj, obj_type_t type)
     boolean retval = TRUE;
 
     if (!obj || obj == (void*)0x0d0d0d0d || obj->ident != obj_idents[OBJ_TYPE_NONE]) {
-        swdiag_error("Validate: Invalid object magic obj=0x%x ident=0x%x", 
+        swdiag_error("Validate: Invalid object magic obj=0x%p ident=0x%x", 
                      obj, (obj && obj != (void*)0x0d0d0d0d) ? obj->ident : 0);
         retval = FALSE;
         return(retval);
@@ -1620,7 +1620,7 @@ boolean swdiag_obj_validate (obj_t *obj, obj_type_t type)
      * The ident is in the same place for all object types.
      */
     if (obj->type != OBJ_TYPE_NONE && (!obj->t.test || obj->t.test->ident != obj_idents[obj->type])) {
-        swdiag_error("Validate: Invalid object type magic 0x%x:0x%x", 
+        swdiag_error("Validate: Invalid object type magic 0x%p:0x%x", 
                      obj->t.test, obj->t.test ? obj->t.test->ident : 0);
         retval = FALSE;
         return(retval);
@@ -2045,7 +2045,7 @@ void swdiag_obj_instance_delete (obj_instance_t *instance)
              * And free it when we get a chance to.
              */
             swdiag_list_push(freeme, instance);
-            swdiag_debug("Deleted instance '%s'", 
+            swdiag_debug(NULL, "Deleted instance '%s'", 
                          swdiag_obj_instance_name(instance));
         }
     }

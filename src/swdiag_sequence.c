@@ -781,7 +781,7 @@ static swdiag_result_t seq_rule_run (obj_instance_t *instance,
                 if (instance->rule_data->position >= rule->op_m) {
                     instance->rule_data->position = 0;
                 }
-                swdiag_debug(instance->obj->i.name, "%s Fail Count = %d", 
+                swdiag_debug(instance->obj->i.name, "%s Fail Count = %ld", 
                              swdiag_obj_instance_name(instance), count_n);
 
                 
@@ -876,7 +876,7 @@ static swdiag_result_t seq_rule_run (obj_instance_t *instance,
     seq_rule_result_on_health(&instance->obj->i, rule_result);
 
     swdiag_debug(instance->obj->i.name,
-                 "Ran rule '%s' result '%s' criteria for (%d in n:%d m:%d)",  
+                 "Ran rule '%s' result '%s' criteria for (%ld in n:%ld m:%ld)",  
                  swdiag_obj_instance_name(instance),
                  swdiag_util_swdiag_result_str(rule_result), 
                  value, rule->op_n, rule->op_m);

@@ -539,7 +539,7 @@ void swdiag_sched_rule_immediate (obj_instance_t *rule_instance)
             /* 
              * Schedule the test to run ASAP.
              */
-            swdiag_trace("SCHED: Immediate test '%s' being queued", 
+            swdiag_trace(NULL, "SCHED: Immediate test '%s' being queued", 
                          swdiag_obj_instance_name(test_instance));
             swdiag_sched_test_immediate(test_instance);
         } 

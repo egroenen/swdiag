@@ -51,5 +51,6 @@ void swdiag_xos_trace (trace_event_t *event)
         printf("Error: %s\n", event->string);
         break;
     default:
+        break;
     }
 }

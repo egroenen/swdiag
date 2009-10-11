@@ -2279,7 +2279,7 @@ void swdiag_cli_local_test_run (const char *test_name,
         printf("Run (no rules) %s\n", swdiag_obj_instance_name(instance));
         result = swdiag_seq_test_run(instance, &retval);
         if (result == SWDIAG_RESULT_VALUE) {
-            printf("Test result was %s-%d for %s\n",
+            printf("Test result was %s-%ld for %s\n",
                 swdiag_util_swdiag_result_str(result), retval,
                 swdiag_obj_instance_name(instance));
         } else {
@@ -2404,6 +2404,7 @@ void swdiag_cli_local_enable_disable_action (const char *action_name,
         break;
     default:
         /* Invalid */
+        break;
     }    
     swdiag_obj_db_unlock();
 }    
@@ -2614,7 +2615,7 @@ cli_obj_name_t *swdiag_cli_local_get_option_tbl (unsigned int handle_id,
             break;
         }    
 
-        swdiag_debug(NULL, "Table: name=%s rel=%d, remote=%d obj=0x%x",
+        swdiag_debug(NULL, "Table: name=%s rel=%d, remote=%d obj=0x%p",
                      obj->i.name, rel == OBJ_REL_COMP, 
                      obj->remote_location, obj);
 

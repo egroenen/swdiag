@@ -37,21 +37,11 @@
 #include "swdiag_xos.h"
 #include "swdiag_trace.h"
 
-#if defined(__QNXNTO__) /* Function implementations for QNX */
-
-
-#elif defined(__SOLARIS__) /* Function implementations for Solaris */
-
-
-#elif defined(__LINUX__) /* Function implementations for Linux */
-
-
-#else /* Function implementations for IOS */
+#if defined(__IOS__) /* Function implementations for IOS */
 /*
  * For IOS we need ONESEC and uint
  */
 #include <sys/shim/swdiag/swdiag_xos_c_shim.h>
-
 #endif
 
 void swdiag_xos_time_diff (xos_time_t *start, 

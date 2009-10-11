@@ -128,6 +128,6 @@ void *swdiag_api_comp_get_context(const char *component_name);
 /*
  * Default object state that objects go to when created and ready to be used.
  */
-obj_state_t default_obj_state;
+extern obj_state_t default_obj_state;
 
 #endif /* __SWDIAG_API_H__ */

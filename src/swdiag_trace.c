@@ -75,7 +75,7 @@ void swdiag_trace (const char *name, const char *fmt, ...)
     /*
      * All event tracing goes into debugging as well.
      */
-    swdiag_debug(name, event.string);
+    swdiag_debug(name, "%s", event.string);
 }
 
 /*
