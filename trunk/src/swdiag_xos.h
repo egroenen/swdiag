@@ -32,16 +32,20 @@
 #ifndef __SWDIAG_XOS_H__
 #define __SWDIAG_XOS_H__
 
+#include "config.h"
+
 #include "swdiag_client.h"
 
 #ifdef __IOS__
 #include "swdiag_ios.h"
-#elif __SOLARIS__
-#include "swdiag_sunos.h"
-#elif __LINUX__
-#include "swdiag_linux.h"
 #elif IOS_ON_NEUTRINO
 #include "swdiag_ion.h"
+#else
+/*
+ * All other OS include swdiag_linux.h until we figure out a better way of doing the
+ * platform independence using autoconf.
+ */
+#include "swdiag_linux.h"
 #endif
 
 #include "swdiag_types.h"

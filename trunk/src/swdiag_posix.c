@@ -33,6 +33,17 @@
 #include <string.h>
 #include <errno.h>
 #include <pthread.h>
+#include <unistd.h>
+
+#ifdef __APPLE__
+/*
+ * Mac OS X doesn't have posix timers, so do it some other TBD way.
+ *
+ * We'll come back to this later, giving up on it for now.
+ */
+#include <sys/time.h>
+#include <CoreFoundation/CFRunLoop.h>
+#endif
 
 #include "swdiag_xos.h"
 #include "swdiag_obj.h"
@@ -62,10 +73,16 @@ struct xos_thread_t_ {
 };
 
 struct xos_timer_t_ {
-    xos_timer_t *next;
+    struct xos_timer_t_ *next;
     boolean started;
     xos_timer_expiry_fn_t *expiry_fn;
+#if defined(_POSIX_TIMERS) && (_POSIX_TIMERS - 200112L) > 0L
     timer_t id;
+#elif __APPLE__
+    struct itimerval id;
+#else
+#error No timers
+#endif
     void *context;
 };
 
@@ -90,6 +107,7 @@ static timer_queue_t timer_queue;
  */
 void swdiag_xos_time_set_now (xos_time_t *time_now)
 {
+#if defined(_POSIX_TIMERS) && (_POSIX_TIMERS - 200112L) > 0L
     struct timespec ts;
 
     if (clock_gettime(CLOCK_REALTIME, &ts) != 0) {
@@ -98,6 +116,16 @@ void swdiag_xos_time_set_now (xos_time_t *time_now)
     }
     time_now->sec = ts.tv_sec;
     time_now->nsec = ts.tv_nsec;
+#elif __APPLE__
+    CFAbsoluteTime current;
+
+    current = (CFAbsoluteTimeGetCurrent() * 1000);
+    time_now->sec = (unsigned int)(current / 1000.0);
+    time_now->nsec = 0;
+#else
+    time_now->sec = 0;
+    time_now->nsec = 0;
+#endif
 }
 
 /*************************************************************
@@ -107,6 +135,7 @@ void swdiag_xos_time_set_now (xos_time_t *time_now)
 /*
  * Walk the list of timers and check which ones have expired
  */
+#if defined(_POSIX_TIMERS) && (_POSIX_TIMERS - 200112L) > 0L
 static void timer_expired (int isignal)
 {
     xos_timer_t *timer;
@@ -186,7 +215,14 @@ xos_timer_t *swdiag_xos_timer_create (xos_timer_expiry_fn_t *fn, void *context)
     swdiag_debug(NULL, "XOS timer %d created", timer->id);
     return (timer);
 }
+#elif __APPLE__
+xos_timer_t *swdiag_xos_timer_create (xos_timer_expiry_fn_t *fn, void *context)
+{
 
+}
+#endif
+
+#if defined(_POSIX_TIMERS) && (_POSIX_TIMERS - 200112L) > 0L
 /*
  * Start the given timer with the given expiry delay
  */
@@ -223,6 +259,20 @@ void swdiag_xos_timer_start (xos_timer_t *timer,
     swdiag_debug(NULL, "XOS timer %d started with delay(%lu,%lu)",
                  timer->id, delay_sec, delay_nsec);
 }
+#elif __APPLE__
+
+/*
+ * On MacOSX we will sleep instead of using a timer, when we wake up we can
+ * check to see what has expired in the meantime.
+ */
+void swdiag_xos_timer_start (xos_timer_t *timer, 
+                             long delay_sec, long delay_nsec)
+{
+
+
+
+}
+#endif
 
 /*
  * Stop the timer (opposite of create)
@@ -232,6 +282,7 @@ void xos_timer_stop (xos_timer_t *timer)
     /* to write */
 }
 
+#if defined(_POSIX_TIMERS) && (_POSIX_TIMERS - 200112L) > 0L
 /*
  * Delete the timer
  */
@@ -243,6 +294,13 @@ void swdiag_xos_timer_delete (xos_timer_t *timer)
         free(timer);
     }
 }
+#else
+void swdiag_xos_timer_delete (xos_timer_t *timer)
+{
+
+}
+
+#endif
 
 /*************************************************************
  * POSIX critical section functions
@@ -370,7 +428,7 @@ xos_thread_t *swdiag_xos_thread_create (const char *name,
         swdiag_thread->id = (int)tid;
     }
 
-    swdiag_debug(NULL, "POSIX thread %d created", thread->tid);
+    swdiag_debug(NULL, "POSIX thread %p created", thread->tid);
     return (thread);
 }
 
@@ -415,7 +473,7 @@ boolean swdiag_xos_thread_wait (xos_thread_t *thread)
 
     rc = pthread_mutex_lock(&thread->run_test_mutex);
     if (rc) {
-        swdiag_debug(NULL, "POSIX wait %d lock failed with %d", thread->tid, rc);
+        swdiag_debug(NULL, "POSIX wait %d lock failed with %d", (int)thread->tid, rc);
         return(FALSE);
     }
 
@@ -426,18 +484,18 @@ boolean swdiag_xos_thread_wait (xos_thread_t *thread)
          */
         rc = pthread_cond_wait(&thread->cond, &thread->run_test_mutex);
         if (rc) {
-            swdiag_debug(NULL, "POSIX wait %d condvar failed with %d", thread->tid, rc);
+            swdiag_debug(NULL, "POSIX wait %d condvar failed with %d", (int)thread->tid, rc);
         }
     }
     thread->work_to_do = FALSE;
 
     rc = pthread_mutex_unlock(&thread->run_test_mutex);
     if (rc) {
-        swdiag_debug(NULL, "POSIX wait %d unlock failed with %d", thread->tid, rc);
+        swdiag_debug(NULL, "POSIX wait %d unlock failed with %d", (int)thread->tid, rc);
         return (FALSE);
     }
 
-    swdiag_debug(NULL, "POSIX thread %d started", thread->tid);
+    swdiag_debug(NULL, "POSIX thread %d started", (int)thread->tid);
     return (TRUE);
 }
 
@@ -457,7 +515,7 @@ boolean swdiag_xos_thread_release (xos_thread_t *thread)
 
     rc = pthread_mutex_lock(&thread->run_test_mutex);
     if (rc) {
-        swdiag_debug(NULL, "POSIX lock %d failed with %d", thread->tid, rc);
+        swdiag_debug(NULL, "POSIX lock %d failed with %d", (int)thread->tid, rc);
         return (FALSE);
     }
 
@@ -469,17 +527,17 @@ boolean swdiag_xos_thread_release (xos_thread_t *thread)
     thread->work_to_do = TRUE;
     rc = pthread_cond_signal(&thread->cond);
     if (rc) {
-        swdiag_debug(NULL, "POSIX release %d condvar failed with %d", thread->tid, rc);
+        swdiag_debug(NULL, "POSIX release %d condvar failed with %d", (int)thread->tid, rc);
         pthread_mutex_unlock(&thread->run_test_mutex);
         return (FALSE);
     }
     rc = pthread_mutex_unlock(&thread->run_test_mutex);
     if (rc) {
-        swdiag_debug(NULL, "POSIX release %d unlock failed with %d", thread->tid, rc);
+        swdiag_debug(NULL, "POSIX release %d unlock failed with %d", (int)thread->tid, rc);
         return (FALSE);
     }
 
-    swdiag_debug(NULL, "POSIX thread %d released", thread->tid);
+    swdiag_debug(NULL, "POSIX thread %d released", (int)thread->tid);
     return (TRUE);
 }
 
@@ -496,7 +554,7 @@ int swdiag_xos_thread_get_id (xos_thread_t *thread)
     }
 
     thread->tid = pthread_self();
-    return (thread->tid);
+    return ((int)thread->tid);
 }
 
 /*

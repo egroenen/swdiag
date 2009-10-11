@@ -54,7 +54,7 @@ void swdiag_xos_notify_test_result (const char *test_name,
      
 {
     printf("\n** Software Diagnostics notify test result for test (%s) "
-        "instance name (%s)", test_name, instance_name **\n");
+        "instance name (%s)", test_name, instance_name);
 }
 
 /*
@@ -69,7 +69,7 @@ void swdiag_xos_notify_rule_result (const char *rule_name,
      
 {
     printf("\n** Software Diagnostics notify rule result for rule (%s) "
-        "instance name (%s)", rule_name, instance_name **\n");
+        "instance name (%s)", rule_name, instance_name);
 }
 
 /*
@@ -84,7 +84,7 @@ void swdiag_xos_notify_action_result (const char *action_name,
      
 {
     printf("\n** Software Diagnostics notify action result for action (%s) "
-        "instance name (%s)", rule_name, instance_name **\n");
+        "instance name (%s)", action_name, instance_name);
 }
 
 /*
@@ -93,12 +93,11 @@ void swdiag_xos_notify_action_result (const char *action_name,
  *
  */
 void swdiag_xos_notify_component_health (const char *comp_name,
-                                         unsigned int lower_threshold,
-                                         unsigned int upper_threshold)
+                                         int health)
      
 {
     printf("\n** Software Diagnostics notify action result for comp (%s)", 
-        comp_name **\n");
+           comp_name);
 }
 
 

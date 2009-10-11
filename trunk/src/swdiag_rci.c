@@ -129,7 +129,7 @@ boolean swdiag_is_domain_reachable (uint container, uint target)
 
     while(domain) {
         if (domain->number == container) {
-            retval = swdiag_list_find(domain->reachable, (void*)target);
+            retval = swdiag_list_find(domain->reachable, (void*)(uintptr_t)target);
             break;
         }
         domain = domain->next;
@@ -291,7 +291,7 @@ void swdiag_depend_create (const char *parent_name,
                  * it as it is now reachable.
                  */
                 swdiag_list_add(domain->reachable,
-                                (void*)child->domain);
+                                (void*)(uintptr_t)child->domain);
                 parent_domain = domain;
 
             } else if (domain->number == child->domain) {
@@ -300,7 +300,7 @@ void swdiag_depend_create (const char *parent_name,
                  * loop and need to walk the tree to find out.
                  */
                 if (swdiag_list_find(domain->reachable, 
-                                     (void*)parent->domain)) {
+                                     (void*)(uintptr_t)parent->domain)) {
                     if (is_obj_in_tree(parent, child)) {
                         /*
                          * Need to go back through the domains and find the
@@ -309,7 +309,7 @@ void swdiag_depend_create (const char *parent_name,
                          */
                         if (parent_domain) {
                             swdiag_list_remove(parent_domain->reachable,
-                                               (void*)child->domain);
+                                               (void*)(uintptr_t)child->domain);
                         }
 
                         swdiag_error("Loop detected creating a dependency between "
@@ -320,12 +320,12 @@ void swdiag_depend_create (const char *parent_name,
                     }
                 }
             } else if (swdiag_list_find(domain->reachable, 
-                                        (void*)parent->domain)) {
+                                        (void*)(uintptr_t)parent->domain)) {
                 /*
                  * This non child and non parent domain can reach our parent
                  * which means that it can now also reach the child.
                  */
-                swdiag_list_add(domain->reachable, (void*)child->domain);
+                swdiag_list_add(domain->reachable, (void*)(uintptr_t)child->domain);
             }
             
             domain = domain->next;
@@ -944,7 +944,7 @@ static boolean rci_map_function (obj_instance_t *instance,
                     rule_instance = swdiag_obj_instance_by_name(element_obj, 
                                                                 instance_name);
                     swdiag_debug(rule_instance->obj->i.name,
-                                 "RCI: Looking for instance '%s', got 0x%x", 
+                                 "RCI: Looking for instance '%s', got 0x%p", 
                                  instance_name, rule_instance);
                     
                     if (rule_instance && 

@@ -2355,12 +2355,12 @@ void swdiag_rule_set_type (const char *rule_name,
     case SWDIAG_RULE_ON_FAIL:
     case SWDIAG_RULE_DISABLE:
         if (operand_n) {
-            swdiag_error("%s - rule '%s' N operand specified (%d) when not expected", 
+            swdiag_error("%s - rule '%s' N operand specified (%ld) when not expected", 
                          fnstr, rule_name, operand_n);
             return;
         }
         if (operand_m) {
-            swdiag_error("%s - rule '%s' M operand specified (%d) when not expected", 
+            swdiag_error("%s - rule '%s' M operand specified (%ld) when not expected", 
                          fnstr, rule_name, operand_m);
             return;
         }
@@ -2370,7 +2370,7 @@ void swdiag_rule_set_type (const char *rule_name,
     case SWDIAG_RULE_LESS_THAN_N:
     case SWDIAG_RULE_GREATER_THAN_N:
         if (operand_m) {
-            swdiag_error("%s - rule '%s' M operand specified (%d) when not expected", 
+            swdiag_error("%s - rule '%s' M operand specified (%ld) when not expected", 
                          fnstr, rule_name, operand_m);
             return;
         }
@@ -2378,39 +2378,39 @@ void swdiag_rule_set_type (const char *rule_name,
     case SWDIAG_RULE_N_EVER:
     case SWDIAG_RULE_N_IN_ROW:
         if (operand_m) {
-            swdiag_error("%s - rule '%s' M operand specified (%d) when not expected", 
+            swdiag_error("%s - rule '%s' M operand specified (%ld) when not expected", 
                          fnstr, rule_name, operand_m);
             return;
         }
 
         if (operand_n < 1) {
-            swdiag_error("%s - rule '%s' N operand less than 1 (%d)", 
+            swdiag_error("%s - rule '%s' N operand less than 1 (%ld)", 
                          fnstr, rule_name, operand_n);
             return;
         }
         break;
     case SWDIAG_RULE_RANGE_N_TO_M:
         if (operand_n > operand_m) {
-            swdiag_error("%s - rule '%s' N operand (%d) greater than M (%d)", 
+            swdiag_error("%s - rule '%s' N operand (%ld) greater than M (%ld)", 
                          fnstr, rule_name, operand_n, operand_m);
             return;
         }
         break;
     case SWDIAG_RULE_N_IN_M:
         if (operand_n > operand_m) {
-            swdiag_error("%s - rule '%s' N operand (%d) greater than M (%d)", 
+            swdiag_error("%s - rule '%s' N operand (%ld) greater than M (%ld)", 
                          fnstr, rule_name, operand_n, operand_m);
             return;
         }
         /* FALLTHRU */
     case SWDIAG_RULE_N_IN_TIME_M:
         if (operand_n < 1) {
-            swdiag_error("%s - rule '%s' N operand less than 1 (%d)", 
+            swdiag_error("%s - rule '%s' N operand less than 1 (%ld)", 
                          fnstr, rule_name, operand_n);
             return;
         }
         if (operand_m < 1) {
-            swdiag_error("%s - rule '%s' M operand less than 1 (%d)", 
+            swdiag_error("%s - rule '%s' M operand less than 1 (%ld)", 
                          fnstr, rule_name, operand_m);
             return;
         }
