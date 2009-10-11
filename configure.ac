@@ -26,7 +26,7 @@ m4_define([PRJ_version],ifelse(
 # initialization
 ###############################################################################
 
-AC_PREREQ([2.61])
+AC_PREREQ([2.59])
 AC_INIT(PRJ_name,PRJ_version,PRJ_bugreport)
 
 AC_MSG_NOTICE([
@@ -35,7 +35,7 @@ AC_MSG_NOTICE([
   -->])
 
 AC_CONFIG_AUX_DIR([autoaux])
-AM_INIT_AUTOMAKE([1.9.6 foreign -Wall -Wno-portability -Werror subdir-objects nostdinc no-dist-gzip dist-bzip2 dist-zip dejagnu])
+AM_INIT_AUTOMAKE([1.9.2 foreign -Wall -Wno-portability -Werror subdir-objects nostdinc no-dist-gzip dist-bzip2 dist-zip dejagnu])
 
 AC_CONFIG_SRCDIR([src/swdiag_api.c])
 
@@ -45,6 +45,8 @@ AC_DEFUN([_LT_AC_LANG_GCJ_CONFIG], [:])
 AC_DEFUN([_LT_AC_LANG_RC_CONFIG], [:])
 
 AC_CANONICAL_HOST
+
+AM_PROG_CC_C_O
 
 ###############################################################################
 # add configure options

@@ -61,5 +61,6 @@ typedef unsigned char uchar;
 #include <time.h>
 #include <unistd.h>
 #include <pthread.h>
+#include <stdint.h>
 
 #endif
