@@ -1,5 +1,5 @@
 /* 
- * swdiag.c 
+ * swdiag_test_proc.c 
  *
  * Copyright (c) 2007-2009 Cisco Systems Inc.
  *
