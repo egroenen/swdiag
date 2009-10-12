@@ -156,8 +156,8 @@ bool_t swdiag_register_1_svc (swdiag_register_t register_msg,
      * fact that it is a remote entity so we know to use a remote access
      * to contact it.
      */
-    swdiag_comp_set_context(component,
-                            client_info);
+    swdiag_api_comp_set_context(component,
+                                client_info);
 
     test_name = swdiag_api_make_name("Poll", component);
 

@@ -40,12 +40,12 @@ if ADD_RPC
 #
 # Add RPC Network support, unconditional for now.
 #
-libswdiag_la_SOURCES += \
-    src/swdiag_unix_rpc.h                \
-    src/swdiag_unix_rpc_xdr.c            \
-    src/swdiag_unix_rpc_clnt.c           \
-    src/swdiag_unix_rpc_svc.c            \
-    src/swdiag_unix_rpc.x
+#libswdiag_la_SOURCES += \
+#    src/swdiag_unix_rpc.h                \
+#    src/swdiag_unix_rpc_xdr.c            \
+#    src/swdiag_unix_rpc_clnt.c           \
+#    src/swdiag_unix_rpc_svc.c            \
+#    src/swdiag_unix_rpc.x
 
 CLEANFILES = \
     src/swdiag_unix_rpc.h                \
@@ -54,8 +54,12 @@ CLEANFILES = \
     src/swdiag_unix_rpc_svc.c            
 endif
 
-libswdiag_la_SOURCES += \
-    src/examples/example1_polledtest.c   
+#
+# Shouldn't really add the examples to libswdiag, use
+# a different target that is not installed.
+#
+#libswdiag_la_SOURCES += \
+#    src/examples/example1_polledtest.c   
 
 if ADD_PLATFORM_POSIX
     libswdiag_la_SOURCES += \
@@ -67,10 +71,40 @@ if ADD_PLATFORM_WIN32
 endif
 
 if ADD_UTIL
-#    libswdiag_la_SOURCES += \
-#    src/swdiag_unix_rpc_master.c
 
-#    bin_PROGRAMS += mp4art
+bin_PROGRAMS += swdiagcli
+bin_PROGRAMS += swdiag
+bin_PROGRAMS += swdiagtest
+
+swdiagcli_SOURCES = src/swdiag_unix_rpc.h \
+                    src/swdiag_unix_rpc_clnt.c \
+                    src/swdiag_unix_rpc_xdr.c \
+                    util/swdiag_unix_cli.c \
+                    util/swdiag_stubs.c
+
+swdiag_SOURCES    = src/swdiag_unix_rpc.h \
+                    src/swdiag_unix_rpc_clnt.c \
+                    src/swdiag_unix_rpc_xdr.c \
+                    src/swdiag_unix_rpc_svc.c \
+                    src/swdiag_unix_rpc_master.c \
+                    src/swdiag_unix_rpc_slave.c \
+                    src/swdiag_linux_rpc_thread.c \
+                    util/swdiag_unix_main.c \
+                    util/swdiag.c
+
+swdiagtest_SOURCES= src/swdiag_unix_rpc.h \
+                    src/swdiag_unix_rpc_clnt.c \
+                    src/swdiag_unix_rpc_xdr.c \
+                    src/swdiag_unix_rpc_svc.c \
+                    src/swdiag_unix_rpc_master.c \
+                    src/swdiag_unix_rpc_slave.c \
+                    src/swdiag_linux_rpc_thread.c \
+                    util/swdiag_unix_main.c \
+                    util/swdiag_test.c
+
+swdiagcli_LDADD   = libswdiag.la $(X_LDFLAGS) -lnsl -lpthread -lrt
+swdiag_LDADD      = libswdiag.la $(X_LDFLAGS) -lnsl -lpthread -lrt
+swdiagtest_LDADD  = libswdiag.la $(X_LDFLAGS) -lnsl -lpthread -lrt
 
 endif
 
@@ -144,8 +178,7 @@ MK_CXX_W    = -Wall -Wformat
 MK_CXX_D    =
 
 MK_CXX_I = \
-    -I$(top_builddir)/include -I$(top_srcdir)/include \
-    -I$(top_builddir) -I$(top_srcdir)
+    -I$(top_builddir)/include -I$(top_srcdir) -I$(top_srcdir)/src
 
 ###############################################################################
 
