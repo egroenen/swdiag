@@ -32,8 +32,6 @@
 #ifndef __SWDIAG_XOS_H__
 #define __SWDIAG_XOS_H__
 
-#include "config.h"
-
 #include "swdiag_client.h"
 
 #ifdef __IOS__
@@ -45,6 +43,7 @@
  * All other OS include swdiag_linux.h until we figure out a better way of doing the
  * platform independence using autoconf.
  */
+#include "config.h"
 #include "swdiag_linux.h"
 #endif
 
