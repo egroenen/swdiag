@@ -81,6 +81,11 @@ AC_ARG_ENABLE([mingw_mt],
 ###############################################################################
 
 AC_PROG_CXX
+AC_PROG_CC
+AC_PROG_CPP
+AC_PROG_INSTALL
+AC_PROG_LN_S
+AC_PROG_MAKE_SET
 AC_PROG_LIBTOOL
 
 #AC_CHECK_PROG([FOUND_HELP2MAN],[help2man],[yes],[no])
@@ -182,13 +187,26 @@ AC_SUBST([PROJECT_build])
 # checks for libraries
 ###############################################################################
 
+# FIXME: Replace `main' with a function in `-lnsl':
+#AC_CHECK_LIB([nsl], [main])
+# FIXME: Replace `main' with a function in `-lpthread':
+#AC_CHECK_LIB([pthread], [main])
+# FIXME: Replace `main' with a function in `-lrt':
+#AC_CHECK_LIB([rt], [main])
+
+
 ###############################################################################
 # checks for header files
 ###############################################################################
 
+AC_HEADER_STDC
+AC_CHECK_HEADERS([fcntl.h malloc.h netdb.h stdint.h stdlib.h string.h sys/time.h syslog.h unistd.h])
+
 ###############################################################################
 # checks for typedefs, structures, and compiler characteristics
 ###############################################################################
+
+AC_C_CONST
 
 ###############################################################################
 # additional ldflags
@@ -401,6 +419,11 @@ AC_SUBST([X_RPCGENOPTS])
 ###############################################################################
 # checks for library functions
 ###############################################################################
+
+AC_FUNC_FORK
+AC_FUNC_MALLOC
+AC_TYPE_SIGNAL
+AC_CHECK_FUNCS([clock_gettime gethostname strchr strdup strerror])
 
 ###############################################################################
 # conditional compilation
