@@ -35,8 +35,7 @@ AC_MSG_NOTICE([
   -->])
 
 AC_CONFIG_AUX_DIR([autoaux])
-AM_INIT_AUTOMAKE([1.9.2 foreign -Wall -Wno-portability -Werror subdir-objects nostdinc no-dist-gzip dist-bzip2 dist-zip dejagnu])
-
+AM_INIT_AUTOMAKE([1.9.2 foreign subdir-objects nostdinc no-dist-gzip dist-bzip2 dist-zip dejagnu])
 AC_CONFIG_SRCDIR([src/swdiag_api.c])
 
 # disable unused langs (improves config speed, reduces configure file size)
@@ -429,7 +428,7 @@ AC_SUBST([X_MINGW_LIBS])
 
 AC_CONFIG_HEADERS([src/config.h])
 
-AC_CONFIG_FILES([GNUmakefile])
+AC_CONFIG_FILES([Makefile])
 AC_CONFIG_FILES([include/project.h])
 AC_CONFIG_FILES([project/project.m4])
 
