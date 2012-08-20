@@ -125,7 +125,7 @@ swdiag_list_t *swdiag_list_create (void)
 {
     swdiag_list_t *list;
 
-    list = malloc(sizeof(swdiag_list_t));
+    list = calloc(1, sizeof(swdiag_list_t));
     if (list) {
         list->head = NULL;
         list->tail = NULL;

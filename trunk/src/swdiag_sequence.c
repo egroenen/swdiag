@@ -996,10 +996,10 @@ static void seq_sequencer (obj_instance_t *instance,
                          "doesn't notify us of the result");
             return;
         }
-        /* FALLTHRU */
+        /* no break */
     case SEQ_TEST_RESULT: 
         swdiag_xos_time_set_now(&instance->sched_test.last_time);
-        /* FALLTHRU */
+        /* no break */
     case SEQ_TEST_RESULT_RCI:
         if (instance->obj->type != OBJ_TYPE_TEST) {
             swdiag_error("SEQ: Wrong object type to test result");
@@ -1027,8 +1027,8 @@ static void seq_sequencer (obj_instance_t *instance,
          * First rule triggering from this test.
          */
         rule = test->rule;
+        /* no break */
 
-        /* FALLTHRU */
     case SEQ_RULE_PROCESS_INPUT:
         /*
          * Process the input result sending it to all interested
@@ -1108,13 +1108,12 @@ static void seq_sequencer (obj_instance_t *instance,
         break;
     case SEQ_RULE_RUN_RCI:
         rule_result = instance->last_result;
-        /* FALLTHRU */
+        /* no break */
     case SEQ_RULE_RUN:
         if (event != SEQ_RULE_RUN_RCI) {
             rule_result = seq_rule_run(instance, test_result, value);
         }
-
-        /* FALLTHRU */
+        /* no break */
     case SEQ_RULE_RESULT:
         /*
          * If this rule feeds its results to any other rules kick
@@ -1164,8 +1163,7 @@ static void seq_sequencer (obj_instance_t *instance,
                               rule_result, 0);
             }
         }
-
-        /* FALLTHRU */
+        /* no break */
     case SEQ_RCI_RUN:
         /*
          * Pass all rule passes and initial rule failures through to
@@ -1253,7 +1251,7 @@ static void seq_sequencer (obj_instance_t *instance,
                          "doesn't notify us of the result");
             return;
         }
-        /* fall through */
+        /* no break */
     case SEQ_ACTION_RESULT:  
         /*
          * If the action passed then we should retest the rule to check
@@ -1270,7 +1268,7 @@ static void seq_sequencer (obj_instance_t *instance,
             
             /*
              * Don't run rules for built in's, there could be a lot of 
-             * those, and mnost don't apply. 
+             * those, and most don't apply.
              *
              * Note that at this time these flags are only set on the 
              * base object.

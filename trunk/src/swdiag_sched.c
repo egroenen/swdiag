@@ -185,7 +185,7 @@ static void check_queue_test_times (void)
  */
 static void test_start_timer_expired (void *context)
 {
-    //swdiag_debug("SCHED start timer expired");
+    swdiag_debug(NULL, "SCHED start timer expired");
 
     if (!sched_thread) {
         return;

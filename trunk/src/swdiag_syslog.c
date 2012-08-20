@@ -44,7 +44,7 @@ void swdiag_xos_trace (trace_event_t *event)
     switch(event->type) {
     case TRACE_STRING:
         //syslog(LOG_INFO, event->string);
-        //printf("Info: %s\n", event->string);
+        printf("Info: %s\n", event->string);
         break;
     case TRACE_ERROR:
         syslog(LOG_ERR, event->string);

@@ -179,7 +179,7 @@ xos_timer_t *swdiag_xos_timer_create (xos_timer_expiry_fn_t *fn, void *context)
     sigset_t sigtimer;
     struct sigaction action;
 
-    timer = malloc(sizeof(xos_timer_t));
+    timer = calloc(1, sizeof(xos_timer_t));
     if (!timer) {
         swdiag_error("XOS timer malloc failure");
         return (NULL);
@@ -188,17 +188,6 @@ xos_timer_t *swdiag_xos_timer_create (xos_timer_expiry_fn_t *fn, void *context)
     timer->expiry_fn = fn;
     timer->context = context;
     timer->started = FALSE;
-
-    /*
-     * Add the timer to the tail of the local queue
-     */
-    if (!timer_queue.head) {
-        timer_queue.head = timer;
-    }
-    if (timer_queue.tail) {
-        timer_queue.tail->next = timer;
-    }
-    timer_queue.tail = timer;
     timer->next = NULL;
 
     sigemptyset(&sigtimer);
@@ -217,6 +206,17 @@ xos_timer_t *swdiag_xos_timer_create (xos_timer_expiry_fn_t *fn, void *context)
         free(timer);
         return (NULL);
     }
+
+    /*
+     * Add the timer to the tail of the local queue (if created successfully)
+     */
+    if (!timer_queue.head) {
+        timer_queue.head = timer;
+    }
+    if (timer_queue.tail) {
+        timer_queue.tail->next = timer;
+    }
+    timer_queue.tail = timer;
 
     swdiag_debug(NULL, "XOS timer %d created", timer->id);
     return (timer);

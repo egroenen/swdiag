@@ -72,35 +72,38 @@ endif
 
 if ADD_UTIL
 
-bin_PROGRAMS += swdiagcli
+#bin_PROGRAMS += swdiagcli
 bin_PROGRAMS += swdiag
-bin_PROGRAMS += swdiagtest
+#bin_PROGRAMS += swdiagtest
 
-swdiagcli_SOURCES = src/swdiag_unix_rpc.h \
-                    src/swdiag_unix_rpc_clnt.c \
-                    src/swdiag_unix_rpc_xdr.c \
-                    util/swdiag_unix_cli.c \
-                    util/swdiag_stubs.c
+#swdiagcli_SOURCES = src/swdiag_unix_rpc.h \
+#                    src/swdiag_unix_rpc_clnt.c \
+#                    src/swdiag_unix_rpc_xdr.c \
+#                    util/swdiag_unix_cli.c \
+#                    util/swdiag_stubs.c
 
-swdiag_SOURCES    = src/swdiag_unix_rpc.h \
-                    src/swdiag_unix_rpc_clnt.c \
-                    src/swdiag_unix_rpc_xdr.c \
-                    src/swdiag_unix_rpc_svc.c \
-                    src/swdiag_unix_rpc_master.c \
-                    src/swdiag_unix_rpc_slave.c \
-                    src/swdiag_linux_rpc_thread.c \
-                    util/swdiag_unix_main.c \
+#swdiag_SOURCES    = src/swdiag_unix_rpc.h \
+#                    src/swdiag_unix_rpc_clnt.c \
+#                    src/swdiag_unix_rpc_xdr.c \
+#                    src/swdiag_unix_rpc_svc.c \
+#                    src/swdiag_unix_rpc_master.c \
+#                    src/swdiag_unix_rpc_slave.c \
+#                    src/swdiag_linux_rpc_thread.c \
+#                    util/swdiag_unix_main.c \
+#                    util/swdiag.c
+
+swdiag_SOURCES    = util/swdiag_unix_main.c \
                     util/swdiag.c
 
-swdiagtest_SOURCES= src/swdiag_unix_rpc.h \
-                    src/swdiag_unix_rpc_clnt.c \
-                    src/swdiag_unix_rpc_xdr.c \
-                    src/swdiag_unix_rpc_svc.c \
-                    src/swdiag_unix_rpc_master.c \
-                    src/swdiag_unix_rpc_slave.c \
-                    src/swdiag_linux_rpc_thread.c \
-                    util/swdiag_unix_main.c \
-                    util/swdiag_test.c
+#swdiagtest_SOURCES= src/swdiag_unix_rpc.h \
+#                    src/swdiag_unix_rpc_clnt.c \
+#                    src/swdiag_unix_rpc_xdr.c \
+#                    src/swdiag_unix_rpc_svc.c \
+#                    src/swdiag_unix_rpc_master.c \
+#                    src/swdiag_unix_rpc_slave.c \
+#                    src/swdiag_linux_rpc_thread.c \
+#                    util/swdiag_unix_main.c \
+#                    util/swdiag_test.c
 
 swdiagcli_LDADD   = libswdiag.la $(X_LDFLAGS) -lnsl -lpthread -lrt
 swdiag_LDADD      = libswdiag.la $(X_LDFLAGS) -lnsl -lpthread -lrt
