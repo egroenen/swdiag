@@ -34,7 +34,7 @@
 #include "swdiag_sched.h"
 #include <pthread.h>
 #include "swdiag_unix_clients.h"
-#include "swdiag_unix_rpc.h"
+//#include "swdiag_unix_rpc.h"
 #include "swdiag_cli.h"
 #include "swdiag_cli_local.h"
 
@@ -48,8 +48,8 @@
  */
 void swdiag_xos_register_with_master (const char *component)
 {
-    CLIENT *clnt;
-    swdiag_register_t register_info;
+    //CLIENT *clnt;
+    //swdiag_register_t register_info;
     char my_hostname[MAXHOSTNAMELEN];
     int retval;
     swdiag_unix_info_t *swdiag_info;
@@ -72,7 +72,7 @@ void swdiag_xos_register_with_master (const char *component)
      * And register with the master. This needs to be moved into 
      * the main code, with hooks out to here for the actual work.
      */
-    swdiag_info->clnt = clnt_create(swdiag_info->host, 
+    /*swdiag_info->clnt = clnt_create(swdiag_info->host,
                                    SWDIAG_REMOTE_MASTER_PROTOCOL,
                                    SWDIAG_MASTER_PROTOCOL_V1,
                                    "tcp");
@@ -103,7 +103,7 @@ void swdiag_xos_register_with_master (const char *component)
         clnt_destroy(swdiag_info->clnt);
         swdiag_info->clnt = NULL;
         return;
-    }
+    }*/
 
     printf("Send register message to Master, retval=%d\n", retval);
 }
@@ -161,6 +161,8 @@ int main (int argc, char *argv[])
     int rc;
     static swdiag_unix_info_t swdiag_info;
 
+    swdiag_debug_enable();
+
     if (argc == 2) {
         /*
          * Should be the master, verify.
@@ -184,7 +186,7 @@ int main (int argc, char *argv[])
     }
 
     swdiag_sched_initialize();
-
+    swdiag_debug_enable();
     if (!swdiag_create_instance(&swdiag_info)) {
         fprintf(stderr, "Could not register this SW Diags instance " 
                 "with the master\n");
@@ -194,14 +196,14 @@ int main (int argc, char *argv[])
     /*
      * Start the RPC thread, then go into our main SW Diags loop.
      */
-    rc = pthread_create(&rpc_thread_id, NULL, swdiag_rpc_thread, 
+    /*rc = pthread_create(&rpc_thread_id, NULL, swdiag_rpc_thread,
                         &swdiag_info);
 
     if (rc) {
         fprintf(stderr, "Could not create RPC thread, rc = %d", rc);
         exit(1);
     }
-
+*/
     /*
      * Tell Ha Diags whether we are a master or slave
      */

@@ -214,11 +214,11 @@ typedef enum obj_test_type_e  {
 
 struct obj_test_s {
     unsigned int ident;
-    obj_t *obj;   
+    obj_t *obj;
     obj_test_type_t type;
     obj_rule_t *rule;
     swdiag_test_t *function;
-    unsigned long period;          /* configured periord */ 
+    unsigned long period;          /* configured period */
     unsigned long default_period;  /* default period */
     long          autopass;        /* Auto pass delay */
 };

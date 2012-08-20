@@ -46,7 +46,7 @@ typedef struct swdiag_unix_info_ {
     char *my_name;
     boolean master;
     int rpc_instance;
-    CLIENT *clnt;
+    //CLIENT *clnt;
 } swdiag_unix_info_t;
 
 enum swdiag_clients {
