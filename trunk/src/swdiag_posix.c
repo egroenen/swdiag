@@ -40,6 +40,7 @@
 #include <errno.h>
 #include <pthread.h>
 #include <unistd.h>
+#include <time.h>
 
 #ifdef __APPLE__
 /*
@@ -139,13 +140,18 @@ void swdiag_xos_time_set_now (xos_time_t *time_now)
  *************************************************************/
 
 /*
- * Walk the list of timers and check which ones have expired
+ * Walk the list of timers and check which ones have expired, don't
+ * bother matching up the ids for the actual timer. This may also
+ * be a stray signal - that's fine we'll take what we can.
  */
 #if defined(_POSIX_TIMERS) && (_POSIX_TIMERS - 1) >= 0L
-static void timer_expired (int isignal)
+static void signal_handler (int sig, siginfo_t *si, void *uc)
 {
     xos_timer_t *timer;
     struct itimerspec value;
+    timer_t *tidp = si->si_value.sival_ptr;
+
+    swdiag_debug(NULL, "XOS SIGNAL HANDLER FOR TIMER %d", *tidp);
 
     /*
      * Because we are only using a few timers we don't bother sorting them.
@@ -172,39 +178,49 @@ static void timer_expired (int isignal)
 
 /*
  * Create the timer with given expiry function and context
+ *
+ * We only have one
  */
 xos_timer_t *swdiag_xos_timer_create (xos_timer_expiry_fn_t *fn, void *context)
 {
     xos_timer_t *timer;
-    sigset_t sigtimer;
-    struct sigaction action;
+    struct sigevent sev;
+    struct sigaction sa;
+    int posix_timer_signal = SIGRTMIN;
 
     timer = calloc(1, sizeof(xos_timer_t));
     if (!timer) {
         swdiag_error("XOS timer malloc failure");
         return (NULL);
     }
-    timer->id = -1;
     timer->expiry_fn = fn;
     timer->context = context;
     timer->started = FALSE;
     timer->next = NULL;
 
-    sigemptyset(&sigtimer);
-    action.sa_flags = 0x0;
-    action.sa_mask = sigtimer;
-    action.sa_handler = timer_expired;
-    if (sigaction(SIGALRM, &action, NULL) < 0) {
+    // Set up a signal handler for that signal
+    sa.sa_flags = SA_SIGINFO;
+    sa.sa_sigaction = signal_handler;
+    sigemptyset(&sa.sa_mask);
+
+    if (sigaction(posix_timer_signal, &sa, NULL) < 0) {
         swdiag_error("XOS failed to initialize signal handler");
         free(timer);
         return (NULL);
     }
 
-    if (timer_create(CLOCK_REALTIME, NULL, &timer->id ) == -1) {
+    // Set up a timer that triggers that signal
+    sev.sigev_notify = SIGEV_SIGNAL;
+    sev.sigev_signo = posix_timer_signal;
+    sev.sigev_value.sival_ptr = &timer->id;
+
+    if (timer_create(CLOCK_REALTIME, &sev, &timer->id ) == -1) {
         swdiag_error("XOS timer_create() failed (%s)", 
                      strerror(errno));
         free(timer);
         return (NULL);
+    } else {
+        swdiag_error("XOS timer_create() succeeded");
     }
 
     /*

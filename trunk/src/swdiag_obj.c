@@ -2316,7 +2316,7 @@ int swdiag_obj_ut_get_lock_count (void)
  * Signal that the garbage collector should run now.
  */
 static void garbage_collector_timer_expired (void *context)
-{   
+{
     if (!garbage_collector || !swdiag_xos_thread_release(garbage_collector->xos)) {
         swdiag_error("Garbage collector thread not running");
     }
