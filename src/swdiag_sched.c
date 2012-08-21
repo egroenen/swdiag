@@ -194,7 +194,7 @@ static void test_start_timer_expired (void *context)
     /*
      * Signal the event thread to wake up
      */
-    //swdiag_debug("SCHED releasing event thread %d", sched_thread->id);
+    swdiag_debug(NULL, "SCHED releasing event thread %d", sched_thread->id);
     if (!swdiag_xos_thread_release(sched_thread->xos)) {
         swdiag_error("SCHED failed to release thread");
     }
@@ -228,9 +228,9 @@ static void sched_thread_main (swdiag_thread_t *thread)
     check_queue_test_times();
 
     while (!sched_thread->quit) {
-        //swdiag_debug("SCHED event thread about to wait");
+        swdiag_debug(NULL, "SCHED event thread about to wait");
         swdiag_xos_thread_wait(sched_thread->xos);
-        //swdiag_debug("SCHED event thread woken");
+        swdiag_debug(NULL, "SCHED event thread woken");
         switch (event) {
         case XOS_EVENT_TEST_START:
             swdiag_obj_db_lock();
