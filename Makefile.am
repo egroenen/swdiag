@@ -93,6 +93,7 @@ bin_PROGRAMS += swdiag
 #                    util/swdiag.c
 
 swdiag_SOURCES    = util/swdiag_unix_main.c \
+                    util/mongoose/mongoose.c \
                     util/swdiag.c
 
 #swdiagtest_SOURCES= src/swdiag_unix_rpc.h \
@@ -106,7 +107,7 @@ swdiag_SOURCES    = util/swdiag_unix_main.c \
 #                    util/swdiag_test.c
 
 swdiagcli_LDADD   = libswdiag.la $(X_LDFLAGS) -lnsl -lpthread -lrt
-swdiag_LDADD      = libswdiag.la $(X_LDFLAGS) -lnsl -lpthread -lrt
+swdiag_LDADD      = libswdiag.la $(X_LDFLAGS) -lnsl -lpthread -lrt -ldl
 swdiagtest_LDADD  = libswdiag.la $(X_LDFLAGS) -lnsl -lpthread -lrt
 
 endif
