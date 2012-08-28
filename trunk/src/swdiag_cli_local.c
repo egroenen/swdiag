@@ -54,7 +54,7 @@ typedef struct {
 } polled_test_context;    
 
 static swdiag_list_t *handles_in_use = NULL;
-static unsigned int next_handle_id = 1;
+static unsigned int next_handle_id = 1;   // MUST be randomised to make this unpredictable, so it can be used as a session id.
 
 static unsigned int get_new_handle_id (void)
 {

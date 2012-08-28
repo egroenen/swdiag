@@ -29,6 +29,24 @@
  *
  * Requires two threads, one for servicing RPC's and one for SW Diags
  * itself.
+ *
+ * NOTE that this is all going to change.
+ *
+ * We need to dameonize properly and safely, and we need an alternative
+ * reliable, secure communications mechanism that we can hook into the
+ * swdiag CLI API.
+ *
+ * Ideally we want something that listens on a port, so that we can
+ * talk with other swdiag instances on remote machines.
+ *
+ * I'm thinking that JSON is the best one to use at the moment, SOAP
+ * is too bloated. It will also enable easy integration with webapps.
+ * The authentication can be handled by HTTP on the outside.
+ *
+ * For the JSON parsing we can use jansson, and on the client side
+ * libcurl for the communications. On the server side we will
+ * use mongoose as the SSL web server through which we will pump JSON
+ * from jansson.
  */
 #include "swdiag_client.h"
 #include "swdiag_sched.h"
@@ -37,6 +55,10 @@
 //#include "swdiag_unix_rpc.h"
 #include "swdiag_cli.h"
 #include "swdiag_cli_local.h"
+#include "swdiag_api.h"
+
+#include "mongoose/mongoose.h"
+
 
 /*
  * swdiag_xos_register_with_master()
@@ -154,6 +176,36 @@ cli_info_t *swdiag_cli_get_info (unsigned int handle)
     return (swdiag_cli_local_get_info(handle, MAX_LOCAL));
 }    
 
+/*
+ * Simple hello world callback. In reality we need to have an authorise callback
+ * that will authorise the connection and setup a session. That session is then
+ * returned in a cookie. That cookie is used for subsequent requests.
+ *
+ * We can use the CLI handle as the session, two birds with one stone.
+ */
+static void *callback(enum mg_event event,
+                      struct mg_connection *conn) {
+  const struct mg_request_info *request_info = mg_get_request_info(conn);
+
+  if (event == MG_NEW_REQUEST) {
+    char content[1024];
+    int content_length = snprintf(content, sizeof(content),
+                                  "Hello from mongoose! Remote port: %d",
+                                  request_info->remote_port);
+    mg_printf(conn,
+              "HTTP/1.1 200 OK\r\n"
+              "Content-Type: text/plain\r\n"
+              "Content-Length: %d\r\n"        // Always set Content-Length
+              "\r\n"
+              "%s",
+              content_length, content);
+    // Mark as processed
+    return "";
+  } else {
+    return NULL;
+  }
+}
+
 
 int main (int argc, char *argv[])
 {
@@ -204,6 +256,15 @@ int main (int argc, char *argv[])
         exit(1);
     }
 */
+
+    /*
+     * Start the embedded monsoon web server
+     */
+    struct mg_context *ctx;
+    const char *options[] = {"listening_ports", "8080", NULL};
+
+    ctx = mg_start(&callback, NULL, options);
+
     /*
      * Tell Ha Diags whether we are a master or slave
      */
