@@ -169,10 +169,10 @@ static void thread_main (swdiag_thread_t *thread)
                     calculate_throttle_delay();
                 }
 
-                // swdiag_debug("Thread %s(%d) starting job 0x%x", thread->name, thread->id, thread->job);
+                // swdiag_debug(NULL, "Thread %s(%d) starting job 0x%x", thread->name, thread->id, thread->job);
                 thread->job->execute(thread, thread->job->context);
 
-                //swdiag_debug("Thread %s(%d) completed job", thread->name, thread->id);
+                //swdiag_debug(NULL, "Thread %s(%d) completed job", thread->name, thread->id);
                 /*
                  * Finished, free the job.
                  */

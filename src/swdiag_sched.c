@@ -149,7 +149,7 @@ static void check_queue_test_times (void)
         return;
     }
 
-    //swdiag_debug("SCHED checking queue times");
+    //swdiag_debug(NULL, "SCHED checking queue times");
 
     swdiag_xos_time_set_now(&time_now);
 
@@ -166,7 +166,7 @@ static void check_queue_test_times (void)
             sched_test = swdiag_list_peek(test_queue->queue);
             
             if (sched_test && XOS_TIME_LT(sched_test->next_time, time_now)) {
-                //swdiag_debug("SCHED check queues (detect) %s starting test %s",
+                //swdiag_debug(NULL, "SCHED check queues (detect) %s starting test %s",
                 //             test_queue->name, sched_test->instance->name);
                 dequeue_test_for_start(test_queue);
                 found = TRUE;
@@ -312,7 +312,7 @@ static void check_test_start_timer (void)
              * no need to start the timer, just inform the schedular
              * thread to check the queues and run this test.
              */
-            //swdiag_debug("SCHED check test start - immediately "
+            //swdiag_debug(NULL, "SCHED check test start - immediately "
             //             "releasing thread to run %s",
             //             sched_test->instance->name);
 
@@ -322,7 +322,7 @@ static void check_test_start_timer (void)
             }
 
         } else {
-            //swdiag_debug("SCHED check test start - '%s', now=%lu, then=%lu",
+            //swdiag_debug(NULL, "SCHED check test start - '%s', now=%lu, then=%lu",
             //             sched_test->instance->name, time_now.sec, 
             //             sched_test->next_time.sec);
 
@@ -341,7 +341,7 @@ static void check_test_start_timer (void)
                 delay.nsec += 1e8;
             }
 
-            //swdiag_debug("SCHED check test start - starting timer for "
+            //swdiag_debug(NULL, "SCHED check test start - starting timer for "
             //             "expiry of %s in (%lu.%lu)",
             //             sched_test->instance->name, delay.sec, delay.nsec);
             swdiag_xos_timer_start(test_start_timer, delay.sec, delay.nsec);

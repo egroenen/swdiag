@@ -70,70 +70,24 @@ if ADD_PLATFORM_WIN32
 
 endif
 
-if ADD_UTIL
+if ADD_SERVER
 
 #bin_PROGRAMS += swdiagcli
 bin_PROGRAMS += swdiag
 #bin_PROGRAMS += swdiagtest
 
-#swdiagcli_SOURCES = src/swdiag_unix_rpc.h \
-#                    src/swdiag_unix_rpc_clnt.c \
-#                    src/swdiag_unix_rpc_xdr.c \
-#                    util/swdiag_unix_cli.c \
-#                    util/swdiag_stubs.c
 
-#swdiag_SOURCES    = src/swdiag_unix_rpc.h \
-#                    src/swdiag_unix_rpc_clnt.c \
-#                    src/swdiag_unix_rpc_xdr.c \
-#                    src/swdiag_unix_rpc_svc.c \
-#                    src/swdiag_unix_rpc_master.c \
-#                    src/swdiag_unix_rpc_slave.c \
-#                    src/swdiag_linux_rpc_thread.c \
-#                    util/swdiag_unix_main.c \
-#                    util/swdiag.c
+swdiag_SOURCES    = server/src/swdiag_server.c \
+                    server/src/swdiag_server_module.c \
+                    server/src/mongoose/mongoose.c \
+                    server/src/jsmn/jsmn.c \
+                    server/src/swdiag_json_parser.c
 
-swdiag_SOURCES    = util/swdiag_unix_main.c \
-                    util/mongoose/mongoose.c \
-                    util/swdiag.c
-
-#swdiagtest_SOURCES= src/swdiag_unix_rpc.h \
-#                    src/swdiag_unix_rpc_clnt.c \
-#                    src/swdiag_unix_rpc_xdr.c \
-#                    src/swdiag_unix_rpc_svc.c \
-#                    src/swdiag_unix_rpc_master.c \
-#                    src/swdiag_unix_rpc_slave.c \
-#                    src/swdiag_linux_rpc_thread.c \
-#                    util/swdiag_unix_main.c \
-#                    util/swdiag_test.c
-
-swdiagcli_LDADD   = libswdiag.la $(X_LDFLAGS) -lnsl -lpthread -lrt
+#swdiagcli_LDADD   = libswdiag.la $(X_LDFLAGS) -lnsl -lpthread -lrt
 swdiag_LDADD      = libswdiag.la $(X_LDFLAGS) -lnsl -lpthread -lrt -ldl
-swdiagtest_LDADD  = libswdiag.la $(X_LDFLAGS) -lnsl -lpthread -lrt
+#swdiagtest_LDADD  = libswdiag.la $(X_LDFLAGS) -lnsl -lpthread -lrt
 
 endif
-
-#mp4art_SOURCES       = util/impl.h util/mp4art.cpp
-
-#mp4art_LDADD       = libswdiag.la $(X_LDFLAGS)
-
-
-###############################################################################
-
-SUFFIXES=.x
-
-RPCGEN := rpcgen
-
-%.h : %.x
-	$(RPCGEN) $(X_RPCGENOPTS) -o $@ -h $< 
-
-%_xdr.c: %.x %.h
-	$(RPCGEN) $(X_RPCGENOPTS) -o $@ -c $< 
-
-%_clnt.c : %.x %.h
-	$(RPCGEN) $(X_RPCGENOPTS) -o $@ -l $< 
-
-%_svc.c : %.x %.h
-	$(RPCGEN) $(X_RPCGENOPTS) -o $@ -m $< 
 
 ###############################################################################
 
@@ -177,9 +131,9 @@ LIBS := $(LIBS) $(X_MINGW_LIBS)
 
 ###############################################################################
 
-MK_CXX_ARCH =
+MK_CXX_ARCH = 
 MK_CXX_W    = -Wall -Wformat
-MK_CXX_D    =
+MK_CXX_D    = 
 
 MK_CXX_I = \
     -I$(top_builddir)/include -I$(top_srcdir)/include -I$(top_srcdir)/src \
