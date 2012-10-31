@@ -23,18 +23,3 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-
-/*
- * SW Diagnostics standalone server, replies on RPC.
- */
-
-#include "swdiag_unix_clients.h"
-
-boolean swdiag_create_instance (swdiag_unix_info_t *swdiag_info)
-{
-    /*
-     * Just in case we are running as a slave - which we shouldn't.
-     */
-    swdiag_info->my_name = "Cisco HA Diagnostics Daemon";
-    return(TRUE);
-}

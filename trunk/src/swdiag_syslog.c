@@ -48,10 +48,10 @@ void swdiag_xos_trace (trace_event_t *event)
         break;
     case TRACE_ERROR:
         syslog(LOG_ERR, event->string);
-        printf("ERROR: %s\n", event->string);
+        printf("ERROR**: %s\n", event->string);
         break;
     case TRACE_DEBUG:
-        printf("DEBUG: %s\n", event->string);
+        printf("debug: %s\n", event->string);
         break;
     default:
         break;

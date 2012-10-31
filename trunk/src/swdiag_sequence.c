@@ -964,25 +964,6 @@ static void seq_sequencer (obj_instance_t *instance,
             return;
         }
 
-        if (test_result == SWDIAG_RESULT_IGNORE) {
-            /*
-             * Test wants us to ignore this result, e.g. a test that
-             * works on instances uses this when it is run on a base
-             * object instance.
-             *
-             * Don't update any stats, totally ignore.
-             */ 
-
-            swdiag_debug(instance->obj->i.name,
-                         "Test result returned ignored for '%s'", 
-                         swdiag_obj_instance_name(instance));   
-
-            if (test->type == OBJ_TEST_TYPE_POLLED) {
-                swdiag_sched_add_test(instance, FALSE);
-            }
-            return;
-        }
-
         if (test_result == SWDIAG_RESULT_IN_PROGRESS) {
             /*
              * The test will inform us when the result is available,
@@ -992,7 +973,7 @@ static void seq_sequencer (obj_instance_t *instance,
              *
              * TODO
              */
-            swdiag_error("SEQ: TODO: Need a watchdog timer in case test "
+            swdiag_debug(NULL, "SEQ: TODO: Need a watchdog timer in case test "
                          "doesn't notify us of the result");
             return;
         }
@@ -1006,6 +987,25 @@ static void seq_sequencer (obj_instance_t *instance,
             return;
         }
         test = instance->obj->t.test;
+
+        if (test_result == SWDIAG_RESULT_IGNORE) {
+            /*
+             * Test wants us to ignore this result, e.g. a test that
+             * works on instances uses this when it is run on a base
+             * object instance.
+             *
+             * Don't update any stats, totally ignore.
+             */
+
+            swdiag_debug(instance->obj->i.name,
+                         "Test result returned ignored for '%s'",
+                         swdiag_obj_instance_name(instance));
+
+            if (test->type == OBJ_TEST_TYPE_POLLED) {
+                swdiag_sched_add_test(instance, FALSE);
+            }
+            return;
+        }
 
         if (event != SEQ_TEST_RESULT_RCI) {
             /*
@@ -1247,8 +1247,8 @@ static void seq_sequencer (obj_instance_t *instance,
              *
              * TODO
              */ 
-            swdiag_error("SEQ: TODO: Need a watchdog timer in case action "
-                         "doesn't notify us of the result");
+            swdiag_debug(NULL, "SEQ: TODO: Need a watchdog timer in case action "
+                    "doesn't notify us of the result");
             return;
         }
         /* no break */

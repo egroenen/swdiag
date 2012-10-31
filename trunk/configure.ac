@@ -432,7 +432,7 @@ AC_CHECK_FUNCS([clock_gettime gethostname strchr strdup strerror])
 AM_CONDITIONAL([ADD_PLATFORM_POSIX],[test "$X_PLATFORM" = "posix"])
 AM_CONDITIONAL([ADD_PLATFORM_WIN32],[test "$X_PLATFORM" = "win32"])
 
-AM_CONDITIONAL([ADD_UTIL],[test "$enable_util" != "no"])
+AM_CONDITIONAL([ADD_SERVER],[test "$enable_util" != "no"])
 AM_CONDITIONAL([ADD_MANS],[test "$X_PLATFORM" != "win32"])
 
 ###############################################################################

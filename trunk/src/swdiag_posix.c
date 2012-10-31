@@ -151,8 +151,6 @@ static void signal_handler (int sig, siginfo_t *si, void *uc)
     struct itimerspec value;
     timer_t *tidp = si->si_value.sival_ptr;
 
-    swdiag_debug(NULL, "XOS SIGNAL HANDLER FOR TIMER %d", *tidp);
-
     /*
      * Because we are only using a few timers we don't bother sorting them.
      * We don't really want to call tests out of order which can happen here
@@ -170,7 +168,7 @@ static void signal_handler (int sig, siginfo_t *si, void *uc)
         }
 
         if (TIMESPEC_IS_ZERO(&value.it_value)) {
-            swdiag_debug(NULL, "XOS timer %d expired", timer->id);
+            //swdiag_debug(NULL, "XOS timer %d expired", timer->id);
             timer->expiry_fn(timer->context);
         }
     }
@@ -219,8 +217,6 @@ xos_timer_t *swdiag_xos_timer_create (xos_timer_expiry_fn_t *fn, void *context)
                      strerror(errno));
         free(timer);
         return (NULL);
-    } else {
-        swdiag_error("XOS timer_create() succeeded");
     }
 
     /*
@@ -278,8 +274,8 @@ void swdiag_xos_timer_start (xos_timer_t *timer,
                      timer->id, delay_sec, delay_nsec, strerror(errno));
         return;
     }
-    swdiag_debug(NULL, "XOS timer %d started with delay(%lu,%lu)",
-                 timer->id, delay_sec, delay_nsec);
+    //swdiag_debug(NULL, "XOS timer %d started with delay(%lu,%lu)",
+    //             timer->id, delay_sec, delay_nsec);
 }
 #elif __APPLE__
 
@@ -425,6 +421,7 @@ xos_thread_t *swdiag_xos_thread_create (const char *name,
     thread->tid = 0;
     thread->work_to_do = FALSE;
     swdiag_thread->xos = thread;
+    swdiag_thread->name = strdup(name);
 
     rc = pthread_mutex_init(&thread->run_test_mutex, NULL);
     if (rc) {
@@ -517,7 +514,7 @@ boolean swdiag_xos_thread_wait (xos_thread_t *thread)
         return (FALSE);
     }
 
-    swdiag_debug(NULL, "POSIX thread %d started", (int)thread->tid);
+    //swdiag_debug(NULL, "POSIX thread %d started", (int)thread->tid);
     return (TRUE);
 }
 
@@ -559,7 +556,7 @@ boolean swdiag_xos_thread_release (xos_thread_t *thread)
         return (FALSE);
     }
 
-    swdiag_debug(NULL, "POSIX thread %d released", (int)thread->tid);
+    // swdiag_debug(NULL, "POSIX thread %d released", (int)thread->tid);
     return (TRUE);
 }
 

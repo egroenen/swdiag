@@ -42,6 +42,8 @@
  */
 #define RULE_DEPTH_LIMIT 25
 
+#define SWDIAG_NAME_SEPERATOR '@'
+
 obj_state_t default_obj_state = OBJ_STATE_ENABLED;
 
 /*******************************************************************
@@ -345,7 +347,8 @@ static swdiag_result_t user_notify_action (const char *instance_name,
  *******************************************************************/
 
 /*
- * Copy the name and replace all spaces with underscores
+ * Copy the name and replace all spaces with underscores, and our
+ * seperator for remote/local namespace also goes to underscores.
  */
 char *swdiag_api_convert_name (const char *from_to_name)
 {
@@ -354,7 +357,7 @@ char *swdiag_api_convert_name (const char *from_to_name)
     unsigned int count = 0;
 
     for (; *name && count < SWDIAG_MAX_NAME_LEN; name++) {
-        if (*name == ' ' || *name == '/') {
+        if (*name == ' ' || *name == SWDIAG_NAME_SEPERATOR) {
             tmp_name[count] = '_';
         } else {
             tmp_name[count] = *name;
@@ -505,11 +508,6 @@ void swdiag_test_notify (const char *test_name,
         result == SWDIAG_RESULT_IN_PROGRESS) {
         swdiag_error("%s - '%s' bad result value", fnstr, test_name);
         return;
-    }
-
-    if (result != SWDIAG_RESULT_VALUE && value) {
-        swdiag_error("%s - '%s' passed value when not expected", 
-                     fnstr, test_name);
     }
 
     swdiag_obj_db_lock();

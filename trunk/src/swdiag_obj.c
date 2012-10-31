@@ -927,7 +927,7 @@ void swdiag_obj_comp_link_obj (obj_comp_t *comp, obj_t *obj)
     obj->next_in_comp = tmp;
     obj->parent_comp = comp;
 
-    swdiag_debug("%s linked to comp %s", obj->i.name, obj->parent_comp->obj->i.name);
+    swdiag_debug(obj->i.name, "%s linked to comp %s", obj->i.name, obj->parent_comp->obj->i.name);
 
     return;
 }
