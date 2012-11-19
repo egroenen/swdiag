@@ -49,6 +49,7 @@
 #include "swdiag_server_config.h"
 
 int debug_flag = 0;
+int terminal = 0;
 
 /**
  * The server
@@ -67,6 +68,7 @@ int main (int argc, char **argv)
             {"debug", no_argument, &debug_flag, 1},
             {"modules", required_argument, 0, 'm'},
             {"config", required_argument, 0, 'c'},
+            {"terminal", no_argument, &terminal, 1},
             {0,0,0,0}
     };
 
@@ -109,9 +111,22 @@ int main (int argc, char **argv)
         strncpy(server_config.modules_path, modules_path, FILEPATH_MAX-1);
     }
 
-    // Now that the configuration has been read, lets daemonise, if not in debug mode.
+    modules_init(server_config.modules_path);
 
-    if (debug_flag) {
+    if (!modules_process_config()) {
+        // Failed to read the configuration.
+        fprintf(stderr, "ERROR: Failed to read the configuration, exiting.\n");
+        exit(2);
+    }
+
+    if (!swdiag_webserver_start()) {
+        fprintf(stderr, "ERROR: Failed to start the webserver, exiting. Do you have another instance of the swdiag-server already running?\n");
+        exit(2);
+    }
+
+    // Now that the configuration has been read, lets daemonise, if not in terminal mode.
+
+    if (!terminal) {
         /* Fork off the parent process */
         pid = fork();
         if (pid < 0) {
@@ -145,23 +160,15 @@ int main (int argc, char **argv)
         close(STDIN_FILENO);
         close(STDOUT_FILENO);
         close(STDERR_FILENO);
+    } else {
+        swdiag_xos_running_in_terminal();
     }
+
+    // Starting server here...
 
     swdiag_sched_initialize();
 
-    modules_init(server_config.modules_path);
-    if (!modules_process_config()) {
-        // Failed to read the configuration.
-        fprintf(stderr, "ERROR: Failed to read the configuration, exiting.\n");
-        exit(2);
-    }
-
     swdiag_set_master();
-
-    if (!swdiag_webserver_start()) {
-        fprintf(stderr, "ERROR: Failed to start the webserver, exiting.\n");
-        exit(2);
-    }
 
     //swdiag_api_comp_set_context(SWDIAG_SYSTEM_COMP, NULL);
     //swdiag_set_slave("slave");

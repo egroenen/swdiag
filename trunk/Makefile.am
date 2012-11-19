@@ -87,9 +87,11 @@ swdiag_SOURCES    = server/src/swdiag_server.c \
                     server/src/swdiag_webserver.c \
                     server/src/swdiag_server_libinterface.c
 
-#swdiagcli_LDADD   = libswdiag.la $(X_LDFLAGS) -lnsl -lpthread -lrt
+# dynamically linked
 swdiag_LDADD      = libswdiag.la $(X_LDFLAGS) -lnsl -lpthread -lrt -ldl
-#swdiagtest_LDADD  = libswdiag.la $(X_LDFLAGS) -lnsl -lpthread -lrt
+
+# static link it
+swdiag_LDFLAGS    = -static
 
 endif
 
