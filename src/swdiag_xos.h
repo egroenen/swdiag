@@ -151,6 +151,7 @@ swdiag_result_t swdiag_xos_scheduled_switchover(void);
 swdiag_result_t swdiag_xos_reload_standby(void);
 
 void swdiag_xos_trace(trace_event_t *event);
+void swdiag_xos_running_in_terminal(void);
 char *swdiag_xos_sstrncpy(char *s1, char const *s2, unsigned long max);
 char *swdiag_xos_sstrncat(char *s1, char const *s2, unsigned long max);
 

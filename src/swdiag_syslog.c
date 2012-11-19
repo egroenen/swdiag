@@ -32,27 +32,42 @@
 #include "swdiag_trace.h"
 #include <syslog.h>
 
+static int running_in_terminal = 0;
+
+void swdiag_xos_running_in_terminal() {
+    running_in_terminal = 1;
+}
+
 void swdiag_xos_trace (trace_event_t *event)
 {
     static boolean initialised = FALSE;
 
     if (!initialised) {
-        openlog("SWDiags", (LOG_ODELAY | LOG_PID), LOG_LOCAL5);
+        openlog("swdiag", (LOG_ODELAY | LOG_PID), LOG_LOCAL5);
         initialised = TRUE;
     }
 
     switch(event->type) {
     case TRACE_STRING:
-        syslog(LOG_INFO, event->string);
-        //printf("INFO: %s\n", event->string);
+        if (running_in_terminal) {
+            printf("INFO: %s\n", event->string);
+        } else {
+            syslog(LOG_INFO, event->string);
+        }
         break;
     case TRACE_ERROR:
-        syslog(LOG_ERR, event->string);
-        //printf("ERROR**: %s\n", event->string);
+        if (running_in_terminal) {
+            printf("ERROR**: %s\n", event->string);
+        } else {
+            syslog(LOG_ERR, event->string);
+        }
         break;
     case TRACE_DEBUG:
-        syslog(LOG_DEBUG, event->string);
-        //printf("debug: %s\n", event->string);
+        if (running_in_terminal) {
+            printf("debug: %s\n", event->string);
+        } else {
+            syslog(LOG_DEBUG, event->string);
+        }
         break;
     default:
         break;
