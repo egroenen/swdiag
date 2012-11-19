@@ -761,7 +761,7 @@ obj_t *swdiag_obj_get_next_rel (obj_t *obj, obj_rel_t rel)
     }
     
     /* other combinations not yet handled */
-    printf("\nget_obj_get_next(not handled %s)", obj->i.name);
+    //printf("\nget_obj_get_next(not handled %s)", obj->i.name);
     
     return (NULL);
 }

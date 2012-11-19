@@ -56,6 +56,7 @@ static boolean parse_rule(char *module, char *request, jsmntok_t **token_ptr, ch
 static boolean parse_action(char *module, char *request, jsmntok_t **token_ptr, char *reply);
 static boolean parse_instance(char *module, char *request, jsmntok_t **token_ptr, char *reply);
 static boolean parse_test_ready(char *module, char *request, jsmntok_t **token_ptr, char *reply);
+static boolean parse_email(char *module, char *request, jsmntok_t **token_ptr, char *reply);
 
 // Test result keywords
 static boolean parse_result(char *module, char *request, jsmntok_t **token_ptr, char *reply);
@@ -104,7 +105,7 @@ static boolean is_valid_token(jsmntok_t *t) {
  * Process a new JSON request.
  */
 boolean process_json_request(char *module, char *request, char *reply) {
-
+    boolean retval = FALSE;
     jsmn_parser parser;
     jsmn_init(&parser);
 
@@ -126,9 +127,10 @@ boolean process_json_request(char *module, char *request, char *reply) {
     // Process the tokens using our parser, filling in the
     // reply if required.
     if (ret == JSMN_SUCCESS)
-        return parse_request(module, request, tokens, reply);
-    else
-        return FALSE;
+        retval =  parse_request(module, request, tokens, reply);
+
+    free(tokens);
+    return retval;
 }
 
 /**
@@ -175,6 +177,7 @@ static boolean parse_request(char *module, char *request, jsmntok_t *tokens, cha
         ret = FALSE;
     }
 
+    free(token_ptr);
     return ret;
 }
 
@@ -212,8 +215,13 @@ static boolean parse_configuration_command(char *module, char *request, jsmntok_
         } else if (json_token_streq(request, token, "ready")) {
             (*token_ptr)++;
             ret &= parse_test_ready(module, request, token_ptr, reply);
+        } else if (json_token_streq(request, token, "email")) {
+            (*token_ptr)++;
+            ret &= parse_email(module, request, token_ptr, reply);
         } else {
             swdiag_error("Module '%s': Configuration contains invalid command '%s'", module, json_token_to_str(request, token));
+            (*token_ptr)++;
+            ret = FALSE;
         }
     }
     return ret;
@@ -335,9 +343,11 @@ static boolean parse_test(char *module, char *request, jsmntok_t **token_ptr, ch
         if (ret == TRUE && test_name != NULL && (polled == FALSE || (polled == TRUE && interval > 0 ))) {
             if (polled) {
                 test_context *context = calloc(1, sizeof(test_context));
-                strncpy(context->module_name, module, SWDIAG_MAX_NAME_LEN-1);
-                strncpy(context->test_name, test_name, SWDIAG_MAX_NAME_LEN-1);
-                swdiag_test_create_polled(test_name, swdiag_server_exec_test, context, interval);
+                if (context) {
+                    strncpy(context->module_name, module, SWDIAG_MAX_NAME_LEN-1);
+                    strncpy(context->test_name, test_name, SWDIAG_MAX_NAME_LEN-1);
+                    swdiag_test_create_polled(test_name, swdiag_server_exec_test, context, interval);
+                }
             } else {
                 swdiag_test_create_notification(test_name);
             }
@@ -414,7 +424,7 @@ static boolean parse_rule(char *module, char *request, jsmntok_t **token_ptr, ch
         char *description = NULL;
         swdiag_severity_t severity = SWDIAG_SEVERITY_NONE;
         swdiag_rule_operator_t operator = SWDIAG_RULE_ON_FAIL;
-        long n, m;
+        long n = 0, m = 0;
         int i;
 
         (*token_ptr)++;
@@ -435,6 +445,13 @@ static boolean parse_rule(char *module, char *request, jsmntok_t **token_ptr, ch
                    token = *token_ptr;
                    if (is_valid_token(token) && token->type == JSMN_STRING) {
                        input_name = json_token_to_str(request, token);
+                       (*token_ptr)++;
+                   }
+               } else if (json_token_streq(request, token, "action")) {
+                   (*token_ptr)++;
+                   token = *token_ptr;
+                   if (is_valid_token(token) && token->type == JSMN_STRING) {
+                       action_name = json_token_to_str(request, token);
                        (*token_ptr)++;
                    }
                } else if (json_token_streq(request, token, "comp")) {
@@ -557,22 +574,136 @@ static boolean parse_rule(char *module, char *request, jsmntok_t **token_ptr, ch
 }
 
 static boolean parse_action(char *module, char *request, jsmntok_t **token_ptr, char *reply) {
-    boolean ret = FALSE;
+    boolean ret = TRUE;
     jsmntok_t *token = *token_ptr;
 
     if (is_valid_token(token) && token->type == JSMN_OBJECT) {
         int attributes = token->size/2;
+        char *action_name = NULL;
+
+        (*token_ptr)++; // Consume Object token
+
         int i;
         for (i = 0; i < attributes; i++) {
-            (*token_ptr)++;
             token = *token_ptr;
             if (is_valid_token(token) && token->type == JSMN_STRING) {
                // Which attribute do we have here?
                if (json_token_streq(request, token, "name")) {
+                   (*token_ptr)++;
+                   token = *token_ptr;
+                   if (is_valid_token(token) && token->type == JSMN_STRING) {
+                       action_name = json_token_to_str(request, token);
+                       (*token_ptr)++;
+                   } else {
+                       swdiag_error("Module '%s': Configuration contains invalid action name type", module);
+                       ret = FALSE;
+                       break;
+                   }
+               }
+            } else {
+                swdiag_error("Module '%s': Configuration contains invalid action type", module);
+                ret = FALSE;
+                break;
+            }
+        }
 
+        if (ret == TRUE && action_name != NULL) {
+            test_context *context = calloc(1, sizeof(test_context));
+            if (context) {
+                strncpy(context->module_name, module, SWDIAG_MAX_NAME_LEN-1);
+                strncpy(context->test_name, action_name, SWDIAG_MAX_NAME_LEN-1);
+                swdiag_action_create(action_name, swdiag_server_exec_action, context);
+            }
+        }
+
+    }
+    return ret;
+}
+
+static boolean parse_email(char *module, char *request, jsmntok_t **token_ptr, char *reply) {
+    boolean ret = TRUE;
+    jsmntok_t *token = *token_ptr;
+
+    if (is_valid_token(token) && token->type == JSMN_OBJECT) {
+        int attributes = token->size/2;
+        char *alert_name = NULL;
+        char *alert_to = NULL;
+        char *alert_subject = NULL;
+        char *instance_name = NULL;
+        (*token_ptr)++; // Consume Object token
+
+        int i;
+        for (i = 0; i < attributes; i++) {
+            token = *token_ptr;
+            if (is_valid_token(token) && token->type == JSMN_STRING) {
+               // Which attribute do we have here?
+               if (json_token_streq(request, token, "name")) {
+                   (*token_ptr)++;
+                   token = *token_ptr;
+                   if (is_valid_token(token) && token->type == JSMN_STRING) {
+                       alert_name = json_token_to_str(request, token);
+                       (*token_ptr)++;
+                   } else {
+                       swdiag_error("Module '%s': Configuration contains invalid alert name type", module);
+                       ret = FALSE;
+                       break;
+                   }
+               } else if (json_token_streq(request, token, "subject")) {
+                   (*token_ptr)++;
+                   token = *token_ptr;
+                   if (is_valid_token(token) && token->type == JSMN_STRING) {
+                       alert_subject = json_token_to_str(request, token);
+                       (*token_ptr)++;
+                   } else {
+                       swdiag_error("Module '%s': Configuration contains invalid alert subject type", module);
+                       ret = FALSE;
+                       break;
+                   }
+               } else if (json_token_streq(request, token, "instance")) {
+                   (*token_ptr)++;
+                   token = *token_ptr;
+                   if (is_valid_token(token) && token->type == JSMN_STRING) {
+                       instance_name = json_token_to_str(request, token);
+                       (*token_ptr)++;
+                   } else {
+                       swdiag_error("Module '%s': Configuration contains invalid alert instance  ", module);
+                       ret = FALSE;
+                       break;
+                   }
+               } else if (json_token_streq(request, token, "to")) {
+                   (*token_ptr)++;
+                   token = *token_ptr;
+                   if (is_valid_token(token) && token->type == JSMN_STRING) {
+                       alert_to = json_token_to_str(request, token);
+                       (*token_ptr)++;
+                   } else {
+                       swdiag_error("Module '%s': Configuration contains invalid alert to  ", module);
+                       ret = FALSE;
+                       break;
+                   }
+               }else {
+                   swdiag_error("Module '%s': Configuration contains invalid alert type", module);
+                   ret = FALSE;
+                   break;
                }
             }
+        }
 
+        if (ret == TRUE && alert_name != NULL && alert_subject != NULL) {
+            email_context *context = (email_context*)calloc(1, sizeof(email_context));
+            if (context) {
+                if (alert_to) {
+                    // to can be NULL, in which case use the default email address
+                    // from the configuration.
+                    strncpy(context->to, alert_to, EMAIL_TO_MAX-1);
+                }
+                strncpy(context->subject, alert_subject, EMAIL_SUBJECT_MAX-1);
+
+                swdiag_action_create(alert_name, swdiag_server_email, context);
+                if (instance_name != NULL) {
+                    swdiag_instance_create(alert_name, instance_name, context);
+                }
+            }
         }
     }
     return ret;
@@ -619,6 +750,9 @@ static boolean parse_instance(char *module, char *request, jsmntok_t **token_ptr
             // tests are called we know which test it is actually for. We do
             // it for rules as well since we don't know whether this is a rule
             // or a test.
+
+            // We need to grab the object that this is an instance for and reuse
+            // that context.
             test_context *context = calloc(1, sizeof(test_context));
             strncpy(context->module_name, module, SWDIAG_MAX_NAME_LEN-1);
             strncpy(context->test_name, object_name, SWDIAG_MAX_NAME_LEN-1);

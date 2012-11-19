@@ -337,7 +337,7 @@ static swdiag_result_t user_notify_action (const char *instance_name,
 {
     const char *notification = context;
     
-    swdiag_xos_notify_user(notification);
+    swdiag_xos_notify_user(instance_name, notification);
 
     return(SWDIAG_RESULT_PASS);
 }
@@ -1909,6 +1909,32 @@ swdiag_action_flags_t swdiag_action_get_flags (const char *action_name)
     }
     swdiag_obj_db_unlock();
     return(flags & ~OBJ_FLAG_RESERVED);
+}
+
+void *swdiag_get_context (const char *obj_name)
+{
+    obj_t *obj;
+    const char fnstr[] = "Get the context";
+    void *context = NULL;
+
+    /*
+     * Sanity check client params
+     */
+    if (BADSTR(obj_name)) {
+        swdiag_error("%s - bad action_name", fnstr);
+        return (NULL);
+    }
+    swdiag_obj_db_lock();
+    /*
+     * Get the action and return flags. It is not an error to get flags
+     * for unknown action, we just return nothing in this case.
+     */
+    obj = swdiag_obj_get_by_name_unconverted(obj_name, OBJ_TYPE_ANY);
+    if (obj) {
+        context = obj->i.context;
+    }
+    swdiag_obj_db_unlock();
+    return context;
 }
 
 void swdiag_action_set_description (const char *action_name,

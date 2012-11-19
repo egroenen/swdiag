@@ -149,7 +149,7 @@ static void seq_comp_health (obj_comp_t *comp, int health_delta)
 
     /*
      * Confidence is always as low as the health, and then rises
-     * slowely after that with consitent test passes.
+     * slowly after that with consistent test passes (over one hour).
      */
     if (comp->health < comp->confidence) {
         comp->confidence = (comp->health > 0 ? comp->health : 0);
@@ -157,8 +157,14 @@ static void seq_comp_health (obj_comp_t *comp, int health_delta)
         /*
          * And now take away any lack of confidence that the sub-components
          * are having.
+         * Calculating the increment to be enough to close the gap over one hour
+         * assuming that there is at least one test in there that is in the fast
+         * queue. If there are more than one test or rules then this will close
+         * the gap quicker.
+         *
+         * TODO Need a better way of handling this.
          */   
-        increment = (comp->health - comp->confidence) / 100;
+        increment = (comp->health - comp->confidence) / (3600/(SWDIAG_PERIOD_FAST/1000));
         if (increment == 0) {
             increment = 1;
         }
@@ -234,9 +240,8 @@ static void seq_comp_health (obj_comp_t *comp, int health_delta)
             }
         }
         /* Notify result to interested clients */
-        /* TBD. To be added once component health notification is supported
-         * swdiag_xos_notify_component_health(comp->obj->i.name, comp->health);
-         */ 
+        /* TODO. To be added once component health notification is supported */
+        swdiag_xos_notify_component_health(comp->obj->i.name, comp->health);
     }
                                                                    
     /* apply the change to the parent component in a recursive fashion */

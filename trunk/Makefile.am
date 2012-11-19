@@ -79,9 +79,13 @@ bin_PROGRAMS += swdiag
 
 swdiag_SOURCES    = server/src/swdiag_server.c \
                     server/src/swdiag_server_module.c \
+                    server/src/swdiag_server_config.c \
                     server/src/mongoose/mongoose.c \
                     server/src/jsmn/jsmn.c \
-                    server/src/swdiag_json_parser.c
+                    server/src/smtpfuncs.c \
+                    server/src/swdiag_json_parser.c \
+                    server/src/swdiag_webserver.c \
+                    server/src/swdiag_server_libinterface.c
 
 #swdiagcli_LDADD   = libswdiag.la $(X_LDFLAGS) -lnsl -lpthread -lrt
 swdiag_LDADD      = libswdiag.la $(X_LDFLAGS) -lnsl -lpthread -lrt -ldl

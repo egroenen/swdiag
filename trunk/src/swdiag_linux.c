@@ -33,89 +33,6 @@
 #include "swdiag_obj.h"
 
 /*
- * xos_notify_user()
- *
- * Use whatever notification scheme is at our disposal syslog/printf etc.
- */
-void swdiag_xos_notify_user (const char *message)
-{
-    printf("\n***** Software Diagnostics *****\n%s\n", message);
-}
-
-/*
- * swdiag_xos_notify_test_result()
- * Notify the results of a test.
- *
- */
-void swdiag_xos_notify_test_result (const char *test_name,
-                                    const char *instance_name,
-                                    boolean result,
-                                    long value)
-     
-{
-    printf("\n** Software Diagnostics notify test result for test (%s) "
-        "instance name (%s)", test_name, instance_name);
-}
-
-/*
- * swdiag_xos_notify_rule_result()
- * Notify the results of a rule.
- *
- */
-void swdiag_xos_notify_rule_result (const char *rule_name,
-                                    const char *instance_name,
-                                    boolean result,
-                                    long value)
-     
-{
-    printf("\n** Software Diagnostics notify rule result for rule (%s) "
-        "instance name (%s)", rule_name, instance_name);
-}
-
-/*
- * swdiag_xos_notify_action_result()
- * Notify the results of an action.
- *
- */
-void swdiag_xos_notify_action_result (const char *action_name,
-                                      const char *instance_name,
-                                      boolean result,
-                                      long value)
-     
-{
-    printf("\n** Software Diagnostics notify action result for action (%s) "
-        "instance name (%s)", action_name, instance_name);
-}
-
-/*
- * swdiag_xos_notify_action_result()
- * Notify the component health.
- *
- */
-void swdiag_xos_notify_component_health (const char *comp_name,
-                                         int health)
-     
-{
-    printf("\n** Software Diagnostics notify action result for comp (%s)", 
-           comp_name);
-}
-
-
-void swdiag_xos_recovery_in_progress (obj_instance_t *rule_instance,
-                                      obj_instance_t *action_instance)
-{
-    printf("Software Diagnostics Identified Fault\n"
-           " Rule Name Failed:          %s\n"
-           " Recovery Action Initiated: %s\n"
-           " Enter 'swdiag -r %s%s%s' for further details\n",
-           swdiag_obj_instance_name(rule_instance),
-           swdiag_obj_instance_name(action_instance),
-           rule_instance->obj->i.name,
-           swdiag_obj_is_member_instance(rule_instance) ? " -i " : "",
-           swdiag_obj_is_member_instance(rule_instance) ? rule_instance->name : "");
-}
-
-/*
  * swdiag_xos_get_time()
  *
  * Get the unix time, secs since 1970
@@ -161,31 +78,6 @@ const char *swdiag_xos_errmsg_to_name (const void *msgsym)
     return("invalid errmsg");
 }
 
-swdiag_result_t swdiag_xos_reload (void)
-{
-    return(SWDIAG_RESULT_ABORT);
-}
-
-swdiag_result_t swdiag_xos_scheduled_reload (void)
-{
-    return(SWDIAG_RESULT_ABORT);
-}
-
-swdiag_result_t swdiag_xos_switchover (void)
-{
-    return(SWDIAG_RESULT_ABORT);
-}
-
-swdiag_result_t swdiag_xos_scheduled_switchover (void)
-{
-    return(SWDIAG_RESULT_ABORT);
-}
-
-swdiag_result_t swdiag_xos_reload_standby (void)
-{
-    return(SWDIAG_RESULT_ABORT);  
-}
-
 char *swdiag_xos_sstrncpy (char *s1, const char *s2, unsigned long max)
 {
     return (strncpy(s1, s2, max));
@@ -194,4 +86,22 @@ char *swdiag_xos_sstrncpy (char *s1, const char *s2, unsigned long max)
 char *swdiag_xos_sstrncat (char *s1, const char *s2, unsigned long max)
 {
    return (strncat(s1, s2, max));
+}
+
+/*
+ * Need a better home for this! I'm not even convinced that we need it at all.
+ * TODO
+ */
+void swdiag_xos_recovery_in_progress (obj_instance_t *rule_instance,
+                                      obj_instance_t *action_instance)
+{
+//    printf("Software Diagnostics Identified Fault\n"
+//           " Rule Name Failed:          %s\n"
+//           " Recovery Action Initiated: %s\n"
+//           " Enter 'swdiag -r %s%s%s' for further details\n",
+//           swdiag_obj_instance_name(rule_instance),
+//           swdiag_obj_instance_name(action_instance),
+//           rule_instance->obj->i.name,
+//           swdiag_obj_is_member_instance(rule_instance) ? " -i " : "",
+//           swdiag_obj_is_member_instance(rule_instance) ? rule_instance->name : "");
 }
