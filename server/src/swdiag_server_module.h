@@ -47,7 +47,12 @@
 
 extern void modules_init(char *modules_path);
 extern boolean modules_process_config();
-swdiag_result_t swdiag_server_exec_test(const char *instance, void *context, long *value);
+extern swdiag_result_t swdiag_server_exec_test(const char *instance, void *context, long *value);
+extern swdiag_result_t swdiag_server_exec_action(const char *instance, void *context);
+extern swdiag_result_t swdiag_server_email(const char *instance, void *context);
+
+#define EMAIL_TO_MAX      (50)
+#define EMAIL_SUBJECT_MAX (128)
 
 /**
  * Track which test to run using a test_context struct.
@@ -56,5 +61,13 @@ typedef struct {
     char module_name[SWDIAG_MAX_NAME_LEN];
     char test_name[SWDIAG_MAX_NAME_LEN];
 } test_context;
+
+/**
+ * Context struct used for sending an email from an action.
+ */
+typedef struct {
+    char to[EMAIL_TO_MAX];
+    char subject[EMAIL_SUBJECT_MAX];
+} email_context;
 
 #endif /* SWDIAG_SERVER_MODULE_H_ */

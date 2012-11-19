@@ -197,7 +197,7 @@ typedef struct cli_comp_info_t_ {
     unsigned int low;
     unsigned int positive;
     /*
-     * MIB notify + thresholds required
+     * MIB notify + thresholds TODO
      */
 } cli_comp_t;    
 

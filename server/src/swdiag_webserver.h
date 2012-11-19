@@ -1,7 +1,7 @@
-/* 
- * swdiag_syslog.c - SW Diagnostics Unix syslog interface
+/*
+ * swdiag_webserver.h - SW Diagnostics JSON web server
  *
- * Copyright (c) 2007-2009 Cisco Systems Inc.
+ * Copyright (c) 2012 Edward Groenendaal
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -24,37 +24,9 @@
  * SOFTWARE.
  */
 
-/* 
- * Interface to the Unix syslog facility for traceability logging
- * from SW Diagnostics.
- */
-#include "swdiag_xos.h"
-#include "swdiag_trace.h"
-#include <syslog.h>
+#ifndef SWDIAG_SERVER_MODULE_H_
+#define SWDIAG_SERVER_MODULE_H_
 
-void swdiag_xos_trace (trace_event_t *event)
-{
-    static boolean initialised = FALSE;
+extern boolean webserver_start(void);
 
-    if (!initialised) {
-        openlog("SWDiags", (LOG_ODELAY | LOG_PID), LOG_LOCAL5);
-        initialised = TRUE;
-    }
-
-    switch(event->type) {
-    case TRACE_STRING:
-        syslog(LOG_INFO, event->string);
-        //printf("INFO: %s\n", event->string);
-        break;
-    case TRACE_ERROR:
-        syslog(LOG_ERR, event->string);
-        //printf("ERROR**: %s\n", event->string);
-        break;
-    case TRACE_DEBUG:
-        syslog(LOG_DEBUG, event->string);
-        //printf("debug: %s\n", event->string);
-        break;
-    default:
-        break;
-    }
-}
+#endif /* SWDIAG_SERVER_MODULE_H_ */

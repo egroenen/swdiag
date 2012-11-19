@@ -76,7 +76,7 @@ void swdiag_xos_register_with_master(const char *component_name);
 void swdiag_xos_register_as_master(void);
 void swdiag_xos_slave_to_master(void);
 
-void swdiag_xos_notify_user(const char *string);
+void swdiag_xos_notify_user(const char *instance, const char *string);
 void swdiag_xos_notify_test_result(const char *test_name, const char *instance_name,
                                    boolean result, long value);
 void swdiag_xos_notify_rule_result(const char *rule_name, const char *instance_name,

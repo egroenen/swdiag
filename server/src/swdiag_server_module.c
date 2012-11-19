@@ -33,6 +33,8 @@
 #include "swdiag_client.h"
 #include "swdiag_trace.h"
 #include "swdiag_server_module.h"
+#include "swdiag_server_config.h"
+#include "smtpfuncs.h"
 #include <dirent.h>
 #include <errno.h>
 
@@ -82,7 +84,7 @@ boolean modules_process_config() {
     if (modules_ != NULL)  {
         for (i = 0; i < (sizeof(modules_)/sizeof(char*)); i++) {
             swdiag_debug(NULL, "Processing configuration for MODULE '%s'", modules_[i]);
-            char *configuration[MAXBUFLEN + 1];
+            char configuration[MAXBUFLEN + 1];
             char *filename = malloc(strlen(modules_path_) + strlen(modules_[i]) + 7);
             strcpy(filename, modules_path_);
             strcat(filename, "/");
@@ -149,6 +151,78 @@ swdiag_result_t swdiag_server_exec_test(const char *instance, void *context, lon
         } else {
             result = SWDIAG_RESULT_ABORT;
         }
+    }
+
+    return result;
+}
+
+/**
+ * The context contains a string with the name of the module in it, the instance may or may not
+ * contain the instance name, and the value is there in case any value that can be converted into
+ * a number is returned from the test.
+ */
+swdiag_result_t swdiag_server_exec_action(const char *instance, void *context) {
+    swdiag_result_t result = SWDIAG_RESULT_ABORT;
+    test_context *testcontext = (test_context*)context;
+    int rc;;
+
+    swdiag_debug(NULL, "Module %s: Test %s instance %s is being run", testcontext->module_name, testcontext->test_name, instance);
+    char *test_results = calloc(MAXBUFLEN, sizeof(char));
+    char *filename = malloc(strlen(modules_path_) + MAXBUFLEN);
+    strcpy(filename, modules_path_);
+    strcat(filename, "/");
+    strcat(filename, testcontext->module_name);
+    strcat(filename, " action ");
+    strcat(filename, testcontext->test_name);
+    if (instance != NULL) {
+        strcat(filename, " ");
+        strcat(filename, instance);
+    }
+    swdiag_debug(NULL, "MODULE path: %s", filename);
+    FILE *fp = popen(filename, "r");
+    if (fp != NULL) {
+        size_t newLen = fread(test_results, sizeof(char), MAXBUFLEN, fp);
+        if (newLen != 0) {
+            test_results[++newLen] = '\0'; /* Just to be safe. */
+        }
+        pclose(fp);
+        if (newLen != 0) {
+            char *request = calloc(MAXBUFLEN, sizeof(char));
+            if (request) {
+                int len = snprintf(request, MAXBUFLEN, "\"results\":{%s}", test_results);
+                process_json_request(testcontext->module_name, request, NULL);
+                result = SWDIAG_RESULT_IN_PROGRESS;
+                free(request);
+            }
+        } else {
+            result = SWDIAG_RESULT_ABORT;
+        }
+    }
+
+    return result;
+}
+
+/**
+ * Alert the user using the swdiag server preferred mechanism with the message in context. We
+ * are using this in preference to the swdiag_action_create_user_alert() for now since it allows
+ * better control.
+ */
+swdiag_result_t swdiag_server_email(const char *instance, void *context) {
+    swdiag_result_t result = SWDIAG_RESULT_PASS;
+    email_context *email = (email_context*)context;
+
+    if (!instance) {
+        instance = "";
+    }
+
+    if (email) {
+        char *to = email->to;
+        if (*to == '\0') {
+            to = server_config.alert_email_to;
+        }
+
+        /* I'm hardcoding the hostname to swdiag-server - it's not AFAIK important anyway. */
+        send_mail(server_config.smtp_hostname, "swdiag-server", server_config.alert_email_from, to, email->subject, NULL, email->subject);
     }
 
     return result;

@@ -1,7 +1,7 @@
-/* 
- * swdiag_syslog.c - SW Diagnostics Unix syslog interface
+/*
+ * swdiag_server_config.h - SW Diagnostics Server Configuration file parsing
  *
- * Copyright (c) 2007-2009 Cisco Systems Inc.
+ * Copyright (c) 2012 Edward Groenendaal
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -24,37 +24,23 @@
  * SOFTWARE.
  */
 
-/* 
- * Interface to the Unix syslog facility for traceability logging
- * from SW Diagnostics.
- */
-#include "swdiag_xos.h"
-#include "swdiag_trace.h"
-#include <syslog.h>
+#ifndef SWDIAG_SERVER_CONFIG_H_
+#define SWDIAG_SERVER_CONFIG_H_
 
-void swdiag_xos_trace (trace_event_t *event)
-{
-    static boolean initialised = FALSE;
+#define FILEPATH_MAX (128)
+#define EMAIL_MAX (128)
+#define HOSTNAME_MAX (64)
 
-    if (!initialised) {
-        openlog("SWDiags", (LOG_ODELAY | LOG_PID), LOG_LOCAL5);
-        initialised = TRUE;
-    }
+typedef struct {
+    char modules_path[FILEPATH_MAX];
+    char alert_email_to[EMAIL_MAX];
+    char alert_email_from[EMAIL_MAX];
+    char smtp_hostname[HOSTNAME_MAX];
+    // TODO SMTP Auth must go somewhere - here?
+} swdiag_server_config;
 
-    switch(event->type) {
-    case TRACE_STRING:
-        syslog(LOG_INFO, event->string);
-        //printf("INFO: %s\n", event->string);
-        break;
-    case TRACE_ERROR:
-        syslog(LOG_ERR, event->string);
-        //printf("ERROR**: %s\n", event->string);
-        break;
-    case TRACE_DEBUG:
-        syslog(LOG_DEBUG, event->string);
-        //printf("debug: %s\n", event->string);
-        break;
-    default:
-        break;
-    }
-}
+extern swdiag_server_config server_config;
+
+extern boolean config_parse(char *filename);
+
+#endif /* SWDIAG_SERVER_CONFIG_H_ */

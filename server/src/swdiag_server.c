@@ -22,9 +22,21 @@
  * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
+ *
+ * This is the Unix version of the swdiag-server, when running on Windows
+ * we use a different launcher.
  */
 #include <pthread.h>
 #include <getopt.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <fcntl.h>
+#include <errno.h>
+#include <unistd.h>
+#include <syslog.h>
+#include <string.h>
 
 #include "swdiag_client.h"
 #include "swdiag_sched.h"
@@ -33,125 +45,10 @@
 #include "swdiag_api.h"
 
 #include "swdiag_json_parser.h"
-#include "mongoose/mongoose.h"
+#include "swdiag_webserver.h"
+#include "swdiag_server_config.h"
 
 int debug_flag = 0;
-
-/*
- * Using the swdiag library requires that some functions be implemented, we will
- * leave these as stubs for now.
- */
-void swdiag_xos_register_with_master (const char *component)
-{
-
-}
-
-void swdiag_xos_register_as_master (void)
-{
-
-}
-
-void swdiag_xos_slave_to_master (void)
-{
-
-}
-
-
-/*
- * swdiag_get_info_handle()
- * Description:
- *     This is the wrapper to fetch a handle based on cli type and filter
- * Input:
- *     type refers to type of object as Test/Rule/Action
- *     filter refers to type of object failure or current failure.
- * Return:
- *     handle.
- */
-
-unsigned int swdiag_cli_get_info_handle (const char *name,
-                                         cli_type_t type,
-                                         cli_type_filter_t filter,
-                                         const char *instance_name)
-{
-    return (swdiag_cli_local_get_info_handle(name, type, filter,
-                                             instance_name));
-}
-
-
-/*
- * swdiag_cli_get_info()
- * Description:
- *     This is the wrapper to fetch information based on handle.
- * Input:
- *     int:  handle
- * Return:
- *     Pointer to cli_info_t
- */
-cli_info_t *swdiag_cli_get_info (unsigned int handle)
-{
-    return (swdiag_cli_local_get_info(handle, MAX_LOCAL));
-}
-
-/*
- * Simple hello world callback. In reality we need to have an authorise callback
- * that will authorise the connection and setup a session. That session is then
- * returned in a cookie. That cookie is used for subsequent requests.
- *
- * We can use the CLI handle as the session, two birds with one stone.
- */
-static void *https_request_callback(enum mg_event event,
-                                    struct mg_connection *conn) {
-
-  const struct mg_request_info *request_info = mg_get_request_info(conn);
-
-  if (event == MG_NEW_REQUEST) {
-    char content[1024];
-    int content_length = 0;
-    cli_info_element_t *element;
-    cli_type_t type;
-
-    if (strcmp(request_info->uri, "/component") == 0) {
-        type = CLI_COMPONENT;
-    } else if (strcmp(request_info->uri, "/test") == 0) {
-        type = CLI_TEST;
-    } else if (strcmp(request_info->uri, "/rule") == 0) {
-        type = CLI_RULE;
-    } else if (strcmp(request_info->uri, "/action") == 0) {
-        type = CLI_ACTION;
-    } else {
-        type = CLI_UNKNOWN;
-    }
-
-    if (type != CLI_UNKNOWN) {
-        unsigned int handle = swdiag_cli_local_get_info_handle(NULL, type,
-                                                               CLI_FILTER_NONE, NULL);
-        // Now use the handle to get the actual test information.
-
-        if (handle != 0) {
-            cli_info_t *info = swdiag_cli_local_get_info(handle, MAX_LOCAL);
-
-            if (info != NULL) {
-                element = info->elements;
-                while(element != NULL) {
-                    content_length += snprintf(content + content_length, sizeof(content), "Test %s %d %d %d\n", element->name, element->stats.runs, element->stats.passes, element->stats.failures);
-                    element = element->next;
-                }
-                mg_printf(conn,
-                          "HTTP/1.1 200 OK\r\n"
-                          "Content-Type: text/plain\r\n"
-                          "Content-Length: %d\r\n"        // Always set Content-Length
-                          "\r\n"
-                          "%s",
-                          content_length, content);
-            }
-        }
-    }
-    // Mark as processed
-    return "";
-  } else {
-    return NULL;
-  }
-}
 
 /**
  * The server
@@ -161,18 +58,22 @@ int main (int argc, char **argv)
     pthread_t rpc_thread_id;
     int rc;
     char *modules_path = "/etc/swdiag/modules";
+    char *config_path = "/etc/swdiag/server.conf";
+    char *logging_path="/var/log/swdiag.log";
     int c;
+    pid_t pid, sid;
 
     static struct option long_options[] = {
             {"debug", no_argument, &debug_flag, 1},
             {"modules", required_argument, 0, 'm'},
+            {"config", required_argument, 0, 'c'},
             {0,0,0,0}
     };
 
     while (1) {
         int option_index = 0;
 
-        c = getopt_long(argc, argv, "m:", long_options, &option_index);
+        c = getopt_long(argc, argv, "m:c:", long_options, &option_index);
 
         if (c == -1)
             break;
@@ -185,8 +86,11 @@ int main (int argc, char **argv)
         case 'm':
             modules_path = strdup(optarg);
             break;
+        case 'c':
+            config_path = strdup(optarg);
+            break;
         default:
-            fprintf(stderr, "Usage: %s [-m <module path>] [--debug]\n", argv[0]);
+            fprintf(stderr, "Usage: %s [-m <module-path>] [-c <config-path>] [--debug]\n", argv[0]);
             exit(1);
         }
     }
@@ -195,27 +99,69 @@ int main (int argc, char **argv)
         swdiag_debug_enable();
     }
 
+    config_parse(config_path);
+
+    if (server_config.smtp_hostname[0] == '\0') {
+        strncpy(server_config.smtp_hostname, "localhost", HOSTNAME_MAX-1);
+    }
+
+    if (server_config.modules_path[0] == '\0') {
+        strncpy(server_config.modules_path, modules_path, FILEPATH_MAX-1);
+    }
+
+    // Now that the configuration has been read, lets daemonise, if not in debug mode.
+
+    if (debug_flag) {
+        /* Fork off the parent process */
+        pid = fork();
+        if (pid < 0) {
+            exit(EXIT_FAILURE);
+        }
+        /* If we got a good PID, then
+           we can exit the parent process. */
+        if (pid > 0) {
+            exit(EXIT_SUCCESS);
+        }
+
+        /* Change the file mode mask */
+        umask(0);
+
+        /* Open any logs here */
+
+        /* Create a new SID for the child process */
+        sid = setsid();
+        if (sid < 0) {
+            /* Log the failure */
+            exit(EXIT_FAILURE);
+        }
+
+        /* Change the current working directory */
+        if ((chdir("/")) < 0) {
+            /* Log the failure */
+            exit(EXIT_FAILURE);
+        }
+
+        /* Close out the standard file descriptors */
+        close(STDIN_FILENO);
+        close(STDOUT_FILENO);
+        close(STDERR_FILENO);
+    }
+
     swdiag_sched_initialize();
-    modules_init(modules_path);
+
+    modules_init(server_config.modules_path);
     if (!modules_process_config()) {
         // Failed to read the configuration.
         fprintf(stderr, "ERROR: Failed to read the configuration, exiting.\n");
         exit(2);
     }
 
-    /*
-     * Start the embedded monsoon web server running non-SSL (for now) on 7654
-     */
-    struct mg_context *ctx;
-    const char *options[] = {"listening_ports", "7654", NULL};
-
-    ctx = mg_start(&https_request_callback, NULL, options);
-
-    //processJsonRequest("module", strdup("\"test\":{\"name\":\"parser_test\",\"polled\":true,\"interval\":3000}"), NULL);
-
-
     swdiag_set_master();
 
+    if (!swdiag_webserver_start()) {
+        fprintf(stderr, "ERROR: Failed to start the webserver, exiting.\n");
+        exit(2);
+    }
 
     //swdiag_api_comp_set_context(SWDIAG_SYSTEM_COMP, NULL);
     //swdiag_set_slave("slave");
