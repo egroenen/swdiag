@@ -44,6 +44,17 @@ static char *modules_path_;
 // Maximum size for a modules configuration
 #define MAXBUFLEN (1024 * 10)
 
+int EndsWith(const char *str, const char *suffix)
+{
+    if (!str || !suffix)
+        return 0;
+    size_t lenstr = strlen(str);
+    size_t lensuffix = strlen(suffix);
+    if (lensuffix >  lenstr)
+        return 0;
+    return strncmp(str + lenstr - lensuffix, suffix, lensuffix) == 0;
+}
+
 void modules_init(char *modules_path) {
     DIR *d;
     struct dirent *dir;
@@ -54,7 +65,7 @@ void modules_init(char *modules_path) {
     if (d) {
         while ((dir = readdir(d)) != NULL) {
             char *filename = dir->d_name;
-            if (*filename != '.' && *(filename+strlen(filename)-1) != '~') {
+            if (*filename != '.' && !EndsWith(filename, "~") && ~EndsWith(filename, ".conf")) {
                 dirCount++;
             }
         }
@@ -68,7 +79,7 @@ void modules_init(char *modules_path) {
         if (d) {
             while ((dir = readdir(d)) != NULL) {
                 char *filename = dir->d_name;
-                if (*filename != '.' && *(filename+strlen(filename)-1) != '~') {
+                if (*filename != '.' && !EndsWith(filename, "~") && ~EndsWith(filename, ".conf")) {
                     modules_[dirCount++] = strdup(filename);
                     swdiag_debug(NULL, "Added MODULE '%s'", modules_[dirCount-1]);
                 }
@@ -144,8 +155,11 @@ swdiag_result_t swdiag_server_exec_test(const char *instance, void *context, lon
             char *request = calloc(MAXBUFLEN, sizeof(char));
             if (request) {
                 int len = snprintf(request, MAXBUFLEN, "\"results\":{%s}", test_results);
-                process_json_request(testcontext->module_name, request, NULL);
-                result = SWDIAG_RESULT_IN_PROGRESS;
+                if (process_json_request(testcontext->module_name, request, NULL)) {
+                    result = SWDIAG_RESULT_IN_PROGRESS;
+                } else {
+                    result = SWDIAG_RESULT_ABORT;
+                }
                 free(request);
             }
         } else {

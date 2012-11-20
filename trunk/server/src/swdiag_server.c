@@ -123,8 +123,6 @@ int main (int argc, char **argv)
 
     modules_init(server_config.modules_path);
 
-    swdiag_sched_initialize();
-
     if (!modules_process_config()) {
         // Failed to read the configuration.
         fprintf(stderr, "ERROR: Failed to read the configuration, exiting.\n");
@@ -172,6 +170,7 @@ int main (int argc, char **argv)
     }
 
     // Starting server here...
+    swdiag_sched_initialize();
 
     if (!swdiag_webserver_start()) {
         fprintf(stderr, "ERROR: Failed to start the webserver, exiting. Do you have another instance of the swdiag-server already running?\n");
