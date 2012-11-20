@@ -172,6 +172,28 @@ static boolean parse_tuples(char *configuration, jsmntok_t *tokens) {
                     }
                 }
                 (*token_ptr)++;
+            } else if (json_token_streq(configuration, token, "http-dir")) {
+                (*token_ptr)++;
+                token = *token_ptr;
+                if (is_valid_token(token) && token->type == JSMN_PRIMITIVE) {
+                    /* Email address */
+                    char *path = json_token_to_str(configuration, token);
+                    if (path) {
+                        strncpy(server_config.http_root, path, FILEPATH_MAX-1);
+                    }
+                }
+                (*token_ptr)++;
+            } else if (json_token_streq(configuration, token, "http-port")) {
+                (*token_ptr)++;
+                token = *token_ptr;
+                if (is_valid_token(token) && token->type == JSMN_PRIMITIVE) {
+                    /* Email address */
+                    char *path = json_token_to_str(configuration, token);
+                    if (path) {
+                        strncpy(server_config.http_port, path, HTTP_PORT_MAX-1);
+                    }
+                }
+                (*token_ptr)++;
             } else if (json_token_streq(configuration, token, "smtp-hostname")) {
                 (*token_ptr)++;
                 token = *token_ptr;

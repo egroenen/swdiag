@@ -16,25 +16,25 @@ DISKS=`df -lPT | grep ext | awk '{print $7}'`
 
 if [ "$1" == "conf" ]; then
 cat <<EOF
-"comp":{"name":"diskspace"},
+"comp":{"name":"Diskspace"},
 
 "test":{"name":"diskspace_low_free_test",
 		"polled" : true,
         "interval" : "fast",
-        "comp":"diskspace"},
+        "comp":"Diskspace"},
 
 "rule":{"name":"diskspace_low_free_rule",
 		"input":"diskspace_low_free_test",
 		"operator":"SWDIAG_RULE_LESS_THAN_N",
 		"n":$THRESHOLD,
-		"comp":"diskspace"},
+		"comp":"Diskspace"},
 
 "rule":{"name":"diskspace_low_free_rule_time",
         "input":"diskspace_low_free_rule",
         "action":"diskspace_notification",
         "operator":"SWDIAG_RULE_N_IN_ROW"
-        "n":1,
-        "comp":"diskspace"},
+        "n":3,
+        "comp":"Diskspace"},
 EOF
 
 for disk in $DISKS; do

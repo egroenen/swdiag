@@ -30,12 +30,15 @@
 #define FILEPATH_MAX (128)
 #define EMAIL_MAX (128)
 #define HOSTNAME_MAX (64)
+#define HTTP_PORT_MAX (6)
 
 typedef struct {
     char modules_path[FILEPATH_MAX];
     char alert_email_to[EMAIL_MAX];
     char alert_email_from[EMAIL_MAX];
     char smtp_hostname[HOSTNAME_MAX];
+    char http_root[FILEPATH_MAX];
+    char http_port[HTTP_PORT_MAX];
     // TODO SMTP Auth must go somewhere - here?
 } swdiag_server_config;
 

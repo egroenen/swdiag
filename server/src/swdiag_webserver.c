@@ -27,6 +27,9 @@
 #include "mongoose/mongoose.h"
 #include "swdiag_cli.h"
 #include "swdiag_cli_local.h"
+
+#include "swdiag_server_config.h"
+
 /*
  * Simple hello world callback. In reality we need to have an authorise callback
  * that will authorise the connection and setup a session. That session is then
@@ -41,6 +44,7 @@
 static void *https_request_callback(enum mg_event event,
         struct mg_connection *conn) {
 
+    void *processed = "yes";
     const struct mg_request_info *request_info = mg_get_request_info(conn);
 
     if (event == MG_NEW_REQUEST) {
@@ -49,14 +53,13 @@ static void *https_request_callback(enum mg_event event,
         cli_info_element_t *element;
         cli_type_t type;
 
-
-        if (strcmp(request_info->uri, "/component") == 0) {
+        if (strcmp(request_info->uri, "/tabcontent/1") == 0) {
             type = CLI_COMPONENT;
-        } else if (strcmp(request_info->uri, "/test") == 0) {
+        } else if (strcmp(request_info->uri, "/tabcontent/2") == 0) {
             type = CLI_TEST;
-        } else if (strcmp(request_info->uri, "/rule") == 0) {
+        } else if (strcmp(request_info->uri, "/tabcontent/3") == 0) {
             type = CLI_RULE;
-        } else if (strcmp(request_info->uri, "/action") == 0) {
+        } else if (strcmp(request_info->uri, "/tabcontent/4") == 0) {
             type = CLI_ACTION;
         } else {
             type = CLI_UNKNOWN;
@@ -89,22 +92,38 @@ static void *https_request_callback(enum mg_event event,
                             element = element->next;
                         }
                         break;
+                    case CLI_RULE:
+                        while(element != NULL) {
+                            content_length += snprintf(content + content_length, sizeof(content), "Rule %s %d %d %d\n", element->name, element->stats.runs, element->stats.passes, element->stats.failures);
+                            element = element->next;
+                        }
+                        break;
+                    case CLI_ACTION:
+                        while(element != NULL) {
+                            content_length += snprintf(content + content_length, sizeof(content), "Action %s %d %d %d\n", element->name, element->stats.runs, element->stats.passes, element->stats.failures);
+                            element = element->next;
+                        }
+                        break;
                     }
+                    content_length += 12; // For pre's below
                     mg_printf(conn,
                             "HTTP/1.1 200 OK\r\n"
                             "Content-Type: text/plain\r\n"
                             "Content-Length: %d\r\n"        // Always set Content-Length
                             "\r\n"
-                            "%s",
+                            "<pre>%s</pre>",
                             content_length, content);
                 }
             }
+        } else {
+            processed = NULL;
         }
-        // Mark as processed
-        return "";
     } else {
-        return NULL;
+        // Not processed, let mongoose handle it (e.g. a static page).
+        processed = NULL;;
     }
+
+    return processed;
 }
 
 boolean swdiag_webserver_start() {
@@ -112,7 +131,10 @@ boolean swdiag_webserver_start() {
      * Start the embedded monsoon web server running non-SSL (for now) on 7654
      */
     struct mg_context *ctx;
-    const char *options[] = {"listening_ports", "7654", NULL};
+    static const char *options[] = {"listening_ports", server_config.http_port,
+                                    "document_root", server_config.http_root,
+                                    "num_threads", "5",
+                                    NULL};
 
     ctx = mg_start(&https_request_callback, NULL, options);
 

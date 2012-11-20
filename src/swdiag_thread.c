@@ -264,7 +264,7 @@ void swdiag_thread_init (void)
     /*
      * Create a diagnostic that monitors our CPU and throttles it when
      * it exceeds a threshold.
-     */
+     *
     swdiag_test_create_polled(SWDIAG_THREAD_CPU_USAGE,
                               swdiag_thread_cpu_monitor,
                               NULL,
@@ -329,9 +329,9 @@ void swdiag_thread_init (void)
         throttle_high = obj->t.rule;
     }
 
-    /*
+    *
      * Don't trigger the low when the high is already triggering
-     */
+     *
     swdiag_depend_create(SWDIAG_THREAD_CPU_WARN, SWDIAG_THREAD_CPU_HIGH);
 
     swdiag_comp_create(SWDIAG_COMPONENT);
@@ -345,6 +345,7 @@ void swdiag_thread_init (void)
                               NULL);
     
     swdiag_test_chain_ready(SWDIAG_THREAD_CPU_USAGE);
+    */
 }
 
 /*
