@@ -223,6 +223,8 @@ static boolean parse_configuration_command(char *module, char *request, jsmntok_
             (*token_ptr)++;
             ret = FALSE;
         }
+    } else {
+        ret = FALSE;
     }
     return ret;
 }
@@ -778,6 +780,7 @@ static boolean parse_test_ready(char *module, char *request, jsmntok_t **token_p
                 (*token_ptr)++;
             } else {
                 swdiag_error("Module '%s': Configuration contains invalid ready attribute '%s'", module, json_token_to_str(request, token));
+                (*token_ptr)++;
                 ret = FALSE;
                 break;
             }
@@ -802,9 +805,13 @@ static boolean parse_results(char *module, char *request, jsmntok_t **token_ptr,
                 token = *token_ptr;
             } else {
                 swdiag_error("Module '%s': Result expecting a 'result' got a '%s'", module, json_token_to_str(request, token));
+                (*token_ptr)++;
+                ret = FALSE;
             }
         } else {
             swdiag_error("Module '%s': Expecting a string token ('result') at %d", module, token->start);
+            (*token_ptr)++;
+            ret = FALSE;
         }
     }
     return ret;
@@ -854,6 +861,7 @@ static boolean parse_result(char *module, char *request, jsmntok_t **token_ptr, 
                             result = SWDIAG_RESULT_IGNORE;
                         } else {
                             swdiag_error("Module '%s': Result contains invalid result value [pass|fail] '%s'", module, json_token_to_str(request, token));
+                            (*token_ptr)++;
                             ret = FALSE;
                             break;
                         }
@@ -869,6 +877,7 @@ static boolean parse_result(char *module, char *request, jsmntok_t **token_ptr, 
                     }
                 } else {
                     swdiag_error("Module '%s': Result contains invalid attribute '%s'", module, json_token_to_str(request, token));
+                    (*token_ptr)++;
                     ret = FALSE;
                     break;
                 }

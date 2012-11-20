@@ -6,13 +6,17 @@
 # the alert email address.
 #
 # TODO Only works on Linux for now due to looking for FS type ext.
+#
 
-IGNORE=/boot
-THRESHOLD=50000
+# Read in the configuration
+. $0.conf
 
 DISKS=`df -lPT | grep ext | awk '{print $7}'`
 
-
+if [ -z "$THRESHOLD" ]; then
+    echo "COULD NOT READ MODULE CONFIGURATION $0.conf"
+    exit
+fi
 
 if [ "$1" == "conf" ]; then
 cat <<EOF
