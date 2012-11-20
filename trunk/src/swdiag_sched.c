@@ -762,7 +762,7 @@ void swdiag_sched_initialize (void)
 
     swdiag_sched_start();
 
-    swdiag_test_create_polled(SWDIAG_SCHEDULAR_TEST,
+/*    swdiag_test_create_polled(SWDIAG_SCHEDULAR_TEST,
                               validate_schedular,
                               NULL,
                               SWDIAG_PERIOD_SLOW);
@@ -783,7 +783,7 @@ void swdiag_sched_initialize (void)
                               SWDIAG_SCHEDULAR_RECOVER,
                               NULL);
 
-    swdiag_test_chain_ready(SWDIAG_SCHEDULAR_TEST);
+    swdiag_test_chain_ready(SWDIAG_SCHEDULAR_TEST);*/
 
     create_queues();
     swdiag_thread_init();

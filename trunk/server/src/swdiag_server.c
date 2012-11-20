@@ -61,6 +61,8 @@ int main (int argc, char **argv)
     char *modules_path = "/etc/swdiag/modules";
     char *config_path = "/etc/swdiag/server.conf";
     char *logging_path="/var/log/swdiag.log";
+    char *http_path="/usr/share/swdiag/http";
+    char *http_port="7654";
     int c;
     pid_t pid, sid;
 
@@ -111,16 +113,21 @@ int main (int argc, char **argv)
         strncpy(server_config.modules_path, modules_path, FILEPATH_MAX-1);
     }
 
+    if (server_config.http_root[0] == '\0') {
+        strncpy(server_config.http_root, http_path, FILEPATH_MAX-1);
+    }
+
+    if (server_config.http_port[0] == '\0') {
+        strncpy(server_config.http_port, http_port, HTTP_PORT_MAX-1);
+    }
+
     modules_init(server_config.modules_path);
+
+    swdiag_sched_initialize();
 
     if (!modules_process_config()) {
         // Failed to read the configuration.
         fprintf(stderr, "ERROR: Failed to read the configuration, exiting.\n");
-        exit(2);
-    }
-
-    if (!swdiag_webserver_start()) {
-        fprintf(stderr, "ERROR: Failed to start the webserver, exiting. Do you have another instance of the swdiag-server already running?\n");
         exit(2);
     }
 
@@ -166,7 +173,10 @@ int main (int argc, char **argv)
 
     // Starting server here...
 
-    swdiag_sched_initialize();
+    if (!swdiag_webserver_start()) {
+        fprintf(stderr, "ERROR: Failed to start the webserver, exiting. Do you have another instance of the swdiag-server already running?\n");
+        exit(2);
+    }
 
     swdiag_set_master();
 
