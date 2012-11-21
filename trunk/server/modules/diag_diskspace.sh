@@ -18,7 +18,7 @@ if [ -z "$THRESHOLD" ]; then
     exit
 fi
 
-if [ "$1" == "conf" ]; then
+if [ "$1" == "--conf" ]; then
 cat <<EOF
 "comp":{"name":"Diskspace"},
 
@@ -63,7 +63,7 @@ cat <<EOF
 
 EOF
 fi
-if [ "$1" == "test" ]; then
+if [ "$1" == "--test" ]; then
 	if [ "$2" == "diskspace_low_free_test" ]; then
 		if [ "$#" == "2" ]; then
 		  
@@ -80,8 +80,8 @@ EOF
 EOF
             done
 			exit 0
-		elif [ "$#" == "3" ]; then
-			instance=$3
+		elif [ "$#" == "4" ]; then
+			instance=$4
 cat <<EOF
 "result":{"test":"diskspace_low_free_test",
 			"instance":"$instance",

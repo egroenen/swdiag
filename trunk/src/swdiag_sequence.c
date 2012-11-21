@@ -93,7 +93,7 @@ static unsigned char bit_count (unsigned char data)
         unsigned char val;
         bitvalues = malloc(255);
         if (bitvalues) {
-            for(j = 0; j < 255; j++) {
+            for(j = 0; j <= 255; j++) {
                 val = j;
                 count = 0;
                 for(i = 0; i < 8; i++) {
@@ -707,7 +707,7 @@ static swdiag_result_t seq_rule_run (obj_instance_t *instance,
          * invocation we move our insertion bit along one, which overwrites
          * old values.
          *
-         * To avaluate whether the rule passes or fails we simply have to
+         * To evaluate whether the rule passes or fails we simply have to
          * count how many bits are fail (1) versus pass (0), so N is a count
          * of failures (1), and M is the total count.
          */
@@ -734,7 +734,7 @@ static swdiag_result_t seq_rule_run (obj_instance_t *instance,
                 /*
                  * Allocate the history bits
                  */
-                int history_size = (rule->op_m / sizeof(unsigned char)) + 1;
+                int history_size = (rule->op_m / 8) + 1;
                 instance->rule_data->history = calloc(history_size, 0);
                 instance->rule_data->history_size = history_size;
             }
@@ -786,7 +786,7 @@ static swdiag_result_t seq_rule_run (obj_instance_t *instance,
                 if (instance->rule_data->position >= rule->op_m) {
                     instance->rule_data->position = 0;
                 }
-                swdiag_debug(instance->obj->i.name, "%s Fail Count = %ld", 
+                swdiag_debug(instance->obj->i.name, "%s Fail Count = %ld",
                              swdiag_obj_instance_name(instance), count_n);
 
                 

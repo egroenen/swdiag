@@ -84,7 +84,7 @@ boolean config_parse(char *filename) {
             char configuration[MAXBUFLEN + 1];
             size_t newLen = fread(configuration, sizeof(char), MAXBUFLEN, fp);
             if (newLen == 0) {
-                fputs("Error reading file", stderr);
+                fprintf(stderr, "Error: empty configuration for file '%s'\n", filename);
             } else {
                 configuration[++newLen] = '\0'; /* Just to be safe. */
             }

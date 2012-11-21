@@ -82,13 +82,13 @@ static void *https_request_callback(enum mg_event event,
                                     "                Name   Now/Conf    Runs Passes  Fails\n");
                         while(element != NULL) {
                             content_length += snprintf(content + content_length, sizeof(content),
-                                    "%20s %5.1f/%-5.1f %6d %6d %6d\n", element->name, element->health/10.0, element->confidence/10.0, element->stats.runs, element->stats.passes, element->stats.failures);
+                                    "%20s %s%5.1f/%-5.1f%s %6d %6d %6d\n", element->name, (element->health/10 < 100) ? "<span style=\"color:red;\">" : "", element->health/10.0, element->confidence/10.0, element->health/10 < 100 ? "</span>" : "", element->stats.runs, element->stats.passes, element->stats.failures);
                             element = element->next;
                         }
                         break;
                     case CLI_TEST:
                         while(element != NULL) {
-                            content_length += snprintf(content + content_length, sizeof(content), "Test %s %d %d %d\n", element->name, element->stats.runs, element->stats.passes, element->stats.failures);
+                            content_length += snprintf(content + content_length, sizeof(content), "Test %s %s %d %d %d\n", element->name, swdiag_cli_state_to_str(element->state), element->stats.runs, element->stats.passes, element->stats.failures);
                             element = element->next;
                         }
                         break;
@@ -113,6 +113,7 @@ static void *https_request_callback(enum mg_event event,
                             "\r\n"
                             "<pre>%s</pre>",
                             content_length, content);
+                    free(info);
                 }
             }
         } else {

@@ -3126,3 +3126,22 @@ cli_debug_t *swdiag_cli_local_debug_get (void)
     }
     return(debugs);
 }
+
+const char *swdiag_cli_state_to_str(cli_state_t state) {
+    switch(state) {
+    case CLI_STATE_ALLOCATED:
+        return "Allocated";
+    case CLI_STATE_INITIALIZED:
+        return "Initialised";
+    case CLI_STATE_CREATED:
+        return "Created";
+    case CLI_STATE_ENABLED:
+        return "Enabled";
+    case CLI_STATE_DISABLED:
+        return "Disabled";
+    case CLI_STATE_DELETED:
+        return "Deleted";
+    case CLI_STATE_INVALID:
+        return "Invalid";
+    }
+}
