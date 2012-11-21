@@ -57,7 +57,7 @@ void swdiag_xos_trace (trace_event_t *event)
         break;
     case TRACE_ERROR:
         if (running_in_terminal) {
-            printf("ERROR**: %s\n", event->string);
+            printf("ERROR: %s\n", event->string);
         } else {
             syslog(LOG_ERR, event->string);
         }

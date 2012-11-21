@@ -38,6 +38,7 @@
 #include <dirent.h>
 #include <errno.h>
 
+int moduleCount = 0;
 static char **modules_;
 static char *modules_path_;
 
@@ -59,29 +60,28 @@ void modules_init(char *modules_path) {
     DIR *d;
     struct dirent *dir;
     modules_path_ = modules_path;
-    int dirCount = 0;
 
     d = opendir(modules_path_);
     if (d) {
         while ((dir = readdir(d)) != NULL) {
             char *filename = dir->d_name;
-            if (*filename != '.' && !EndsWith(filename, "~") && ~EndsWith(filename, ".conf")) {
-                dirCount++;
+            if (*filename != '.' && !EndsWith(filename, "~") && !EndsWith(filename, ".conf") && !EndsWith(filename, "_conf.py")) {
+                moduleCount++;
             }
         }
         closedir(d);
     }
 
-    if (dirCount > 0) {
-        modules_ = (char**) calloc(dirCount, sizeof(char*));
-        dirCount = 0;
+    if (moduleCount > 0) {
+        modules_ = (char**) calloc(moduleCount, sizeof(void*));
+        moduleCount = 0;
         d = opendir(modules_path_);
         if (d) {
             while ((dir = readdir(d)) != NULL) {
                 char *filename = dir->d_name;
-                if (*filename != '.' && !EndsWith(filename, "~") && ~EndsWith(filename, ".conf")) {
-                    modules_[dirCount++] = strdup(filename);
-                    swdiag_debug(NULL, "Added MODULE '%s'", modules_[dirCount-1]);
+                if (*filename != '.' && !EndsWith(filename, "~") && !EndsWith(filename, ".conf") && !EndsWith(filename, "_conf.py")) {
+                    modules_[moduleCount++] = strdup(filename);
+                    swdiag_debug(NULL, "Added MODULE '%s'", modules_[moduleCount-1]);
                 }
             }
             closedir(d);
@@ -93,20 +93,21 @@ boolean modules_process_config() {
     boolean ret = FALSE;
     int i;
     if (modules_ != NULL)  {
-        for (i = 0; i < (sizeof(modules_)/sizeof(char*)); i++) {
+        for (i = 0; i < moduleCount; i++) {
             swdiag_debug(NULL, "Processing configuration for MODULE '%s'", modules_[i]);
             char configuration[MAXBUFLEN + 1];
             char *filename = malloc(strlen(modules_path_) + strlen(modules_[i]) + 7);
             strcpy(filename, modules_path_);
             strcat(filename, "/");
             strcat(filename, modules_[i]);
-            strcat(filename, " conf");
+            strcat(filename, " --conf");
             swdiag_debug(NULL, "MODULE path: %s", filename);
             FILE *fp = popen(filename, "r");
             if (fp != NULL) {
                 size_t newLen = fread(configuration, sizeof(char), MAXBUFLEN, fp);
                 if (newLen == 0) {
-                    fputs("Error reading file", stderr);
+                    fprintf(stderr, "Error: empty configuration for module file '%s'\n", filename);
+                    break;
                 } else {
                     configuration[++newLen] = '\0'; /* Just to be safe. */
                 }
@@ -137,10 +138,10 @@ swdiag_result_t swdiag_server_exec_test(const char *instance, void *context, lon
     strcpy(filename, modules_path_);
     strcat(filename, "/");
     strcat(filename, testcontext->module_name);
-    strcat(filename, " test ");
+    strcat(filename, " --test ");
     strcat(filename, testcontext->test_name);
     if (instance != NULL) {
-        strcat(filename, " ");
+        strcat(filename, " --instance ");
         strcat(filename, instance);
     }
     swdiag_debug(NULL, "MODULE path: %s", filename);

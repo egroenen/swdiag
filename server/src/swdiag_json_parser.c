@@ -118,9 +118,9 @@ boolean process_json_request(char *module, char *request, char *reply) {
     int ret = jsmn_parse(&parser, request, tokens, n);
 
     if (ret == JSMN_ERROR_INVAL)
-        swdiag_error("jsmn_parse: invalid JSON string");
+        swdiag_error("jsmn_parse: invalid JSON string '%s'", request);
     if (ret == JSMN_ERROR_PART)
-        swdiag_error("jsmn_parse: truncated JSON string");
+        swdiag_error("jsmn_parse: truncated JSON string '%s'", request);
     if (ret == JSMN_ERROR_NOMEM)
         swdiag_error("jsmn_parse: not enough JSON tokens");
 
@@ -683,8 +683,9 @@ static boolean parse_email(char *module, char *request, jsmntok_t **token_ptr, c
                        ret = FALSE;
                        break;
                    }
-               }else {
-                   swdiag_error("Module '%s': Configuration contains invalid alert type", module);
+               } else {
+                   swdiag_error("Module '%s': Configuration contains invalid alert type '%s'", module,
+                           json_token_to_str(request, token));
                    ret = FALSE;
                    break;
                }

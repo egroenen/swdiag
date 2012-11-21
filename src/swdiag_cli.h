@@ -356,4 +356,5 @@ void swdiag_cli_debug_enable(const char *name);
 void swdiag_cli_debug_disable(const char *name);
 cli_debug_t *swdiag_cli_debug_get(void);
 
+const char *swdiag_cli_state_to_str(cli_state_t state);
 #endif

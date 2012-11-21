@@ -103,6 +103,10 @@ int main (int argc, char **argv)
         swdiag_debug_enable();
     }
 
+    if (terminal) {
+        swdiag_xos_running_in_terminal();
+    }
+
     config_parse(config_path);
 
     if (server_config.smtp_hostname[0] == '\0') {
@@ -125,7 +129,7 @@ int main (int argc, char **argv)
 
     if (!modules_process_config()) {
         // Failed to read the configuration.
-        fprintf(stderr, "ERROR: Failed to read the configuration, exiting.\n");
+        fprintf(stderr, "ERROR: Failed to read all of the module configuration, exiting.\n");
         exit(2);
     }
 
@@ -165,8 +169,6 @@ int main (int argc, char **argv)
         close(STDIN_FILENO);
         close(STDOUT_FILENO);
         close(STDERR_FILENO);
-    } else {
-        swdiag_xos_running_in_terminal();
     }
 
     // Starting server here...
