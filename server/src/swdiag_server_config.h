@@ -34,6 +34,8 @@
 
 typedef struct {
     char modules_path[FILEPATH_MAX];
+    char **modules;
+    int num_modules;
     char alert_email_to[EMAIL_MAX];
     char alert_email_from[EMAIL_MAX];
     char smtp_hostname[HOSTNAME_MAX];

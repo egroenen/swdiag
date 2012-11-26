@@ -205,6 +205,31 @@ static boolean parse_tuples(char *configuration, jsmntok_t *tokens) {
                     }
                 }
                 (*token_ptr)++;
+            } else if (json_token_streq(configuration, token, "enabled-modules")) {
+                // eg. enabled-modules: ['diag_postgres', 'diag_diskspace', 'diag_memory']
+                (*token_ptr)++;
+                token = *token_ptr;
+                if (is_valid_token(token) && token->type == JSMN_ARRAY) {
+                    /* List */
+                    server_config.modules = (char**)calloc(token->size, sizeof(char*));
+                    int i, modules=token->size;
+                    (*token_ptr)++;
+                    token = *token_ptr;
+                    for (i=0; i<modules; i++) {
+                        if (is_valid_token(token) && (token->type == JSMN_STRING || token->type == JSMN_PRIMITIVE)) {
+                            char *modulename = json_token_to_str(configuration, token);
+                            if (modulename) {
+                                server_config.modules[i] = strdup(modulename);
+                            } else {
+                                fprintf(stderr, "WARNING: Could not understand the configuration reading modules\n");
+                                break;
+                            }
+                        }
+                        (*token_ptr)++;
+                        token = *token_ptr;
+                    }
+                    server_config.num_modules = modules;
+                }
             } else {
                 /*
                  * Unknown configuration paramater - go on to the next one.

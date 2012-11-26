@@ -31,7 +31,7 @@
  * only.
  *
  * This abstraction allows the Object DB data to be grouped into 
- * structures that are more convienent for the CLIs and transport
+ * structures that are more convenient for the CLIs and transport
  * to handle. It also forms a reusable API to make moving code to
  * remote locations easier.
  *

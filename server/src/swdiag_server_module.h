@@ -53,6 +53,7 @@ extern swdiag_result_t swdiag_server_email(const char *instance, void *context);
 
 #define EMAIL_TO_MAX      (50)
 #define EMAIL_SUBJECT_MAX (128)
+#define EMAIL_COMMAND_MAX (128)
 
 /**
  * Track which test to run using a test_context struct.
@@ -68,6 +69,7 @@ typedef struct {
 typedef struct {
     char to[EMAIL_TO_MAX];
     char subject[EMAIL_SUBJECT_MAX];
+    char command[EMAIL_COMMAND_MAX];
 } email_context;
 
 #endif /* SWDIAG_SERVER_MODULE_H_ */

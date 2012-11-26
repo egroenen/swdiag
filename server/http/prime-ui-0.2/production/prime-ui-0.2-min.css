@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-.pui-autocomplete{width:auto;zoom:1;cursor:pointer;-moz-box-shadow:none;-webkit-box-shadow:none;box-shadow:none;position:static;}
+.pui-shadow{-moz-box-shadow:0 5px 10px rgba(0,0,0,0.8);-webkit-box-shadow:0 5px 10px rgba(0,0,0,0.8);box-shadow:0 5px 10px rgba(0,0,0,0.8);}.pui-autocomplete{width:auto;zoom:1;cursor:pointer;-moz-box-shadow:none;-webkit-box-shadow:none;box-shadow:none;position:static;}
 .pui-autocomplete-query{font-weight:bold;}
 .pui-autocomplete-panel{position:absolute;overflow:auto;}
 .pui-autocomplete-panel .pui-autocomplete-list{padding:.4em;border:0 none;}
@@ -34,7 +34,35 @@
 .pui-accordion .pui-accordion-header a{display:block;font-size:1em;padding:.5em .5em .5em 2.2em;}
 .pui-accordion .pui-accordion-header .ui-icon{position:absolute;left:.5em;top:50%;margin-top:-8px;}
 .pui-accordion .pui-accordion-content{padding:1em 2.2em;border-top:0;margin-top:-2px;position:relative;top:1px;margin-bottom:2px;overflow:auto;zoom:1;}
-.pui-accordion .pui-accordion-header.ui-state-disabled,.pui-accordion .pui-accordion-header.ui-state-disabled a{cursor:default;}.pui-inputtext{margin:0;outline:medium none;padding:4px;font-weight:normal;}
+.pui-accordion .pui-accordion-header.ui-state-disabled,.pui-accordion .pui-accordion-header.ui-state-disabled a{cursor:default;}.pui-button{display:inline-block;position:relative;padding:0;margin-right:.1em;text-decoration:none!important;cursor:pointer;text-align:center;zoom:1;overflow:visible;}
+.pui-button-icon-only{width:2.4em;}
+.pui-button .pui-button-text{display:block;line-height:1.4;}
+.pui-button-text-only .pui-button-text{padding:.4em 1em;}
+.pui-button-icon-only .pui-button-text{padding:.4em;text-indent:-9999999px;}
+.pui-button-text-icon-left .pui-button-text{padding:.4em 1em .4em 2.1em;}
+.pui-button-text-icon-right .pui-button-text{padding:.4em 2.1em .4em 1em;}
+.pui-button-icon-only .ui-icon,.pui-button-text-icon-left .ui-icon,.pui-button-text-icon-right .ui-icon{position:absolute;top:50%;margin-top:-8px;}
+.pui-button-icon-only .ui-icon{left:50%;margin-left:-8px;}
+.pui-button-icon-left{left:.5em;}
+.pui-button-icon-right{right:.5em;}
+.pui-buttonset{margin-right:7px;}
+.pui-buttonset .pui-button{margin-left:0;margin-right:0;}
+button.pui-button::-moz-focus-inner{border:0;padding:0;}* html .pui-growl{position:absolute;}
+* html .pui-growl-item{padding-bottom:0;}
+* html .pui-growl-icon-close{top:7px;right:7px;}
+.pui-growl{position:fixed;top:20px;right:20px;width:301px;}
+.pui-growl-item-container{position:relative;margin:0 0 10px 0;opacity:.85;filter:alpha(opacity=85);}
+.pui-growl-item{display:block;padding:10px 15px;}
+.pui-growl-item p{padding:0;margin:0;}
+.pui-growl-icon-close{position:absolute;top:5px;right:3px;cursor:pointer;}
+.pui-growl-title{font-weight:bold;padding:0 0 7px 0;display:block;}
+.pui-growl-image{width:32px;height:32px;float:left;margin:0;padding:0;display:block;background:url("../../images/messages.png") no-repeat;}
+.pui-growl-image-info{background-position:0 -264px;}
+.pui-growl-image-warn{background-position:0 -396px;}
+.pui-growl-image-error{background-position:0 0;}
+.pui-growl-image-fatal{background-position:0 -228px;}
+.pui-growl-message{padding:0 0 5px 0;width:220px;float:right;}
+.pui-growl-message p{font-weight:normal;}.pui-inputtext{margin:0;outline:medium none;padding:4px;font-weight:normal;}
 .ui-widget-header .pui-inputtext,.ui-widget-content .pui-inputtext{font-weight:normal;}.pui-inputtextarea-resizable{overflow:hidden;resize:none;}.pui-rating-star,.pui-rating-cancel{float:left;display:block;overflow:hidden;text-indent:-999em;cursor:pointer;}
 .pui-rating-star a,.pui-rating-cancel a{width:16px;height:15px;display:block;background:url("./images/rating.png") no-repeat 0 0;}
 .pui-rating-star a{background-position:0 -32px;}

@@ -43,9 +43,9 @@ static char **modules_;
 static char *modules_path_;
 
 // Maximum size for a modules configuration
-#define MAXBUFLEN (1024 * 10)
+#define MAXBUFLEN (1024 * 32)
 
-int EndsWith(const char *str, const char *suffix)
+boolean str_ends_with(const char *str, const char *suffix)
 {
     if (!str || !suffix)
         return 0;
@@ -54,6 +54,38 @@ int EndsWith(const char *str, const char *suffix)
     if (lensuffix >  lenstr)
         return 0;
     return strncmp(str + lenstr - lensuffix, suffix, lensuffix) == 0;
+}
+
+boolean str_starts_with(const char *str, const char *prefix)
+{
+    if (!str || !prefix)
+        return 0;
+    size_t lenstr = strlen(str);
+    size_t lenprefix = strlen(prefix);
+    if (lenprefix >  lenstr)
+        return 0;
+    return strncmp(str, prefix, lenprefix) == 0;
+}
+
+boolean is_configured_module(const char *filename) {
+    int i;
+
+    for(i = 0; i < server_config.num_modules; i++) {
+        if (str_starts_with(filename, server_config.modules[i])) {
+            return TRUE;
+        }
+    }
+    return FALSE;
+}
+
+boolean is_valid_module(const char *filename) {
+    return is_configured_module(filename) &&
+            *filename != '.' &&
+            !str_ends_with(filename, "~") &&
+            !str_ends_with(filename, ".conf") &&
+            !str_ends_with(filename, "_conf.py") &&
+            !str_ends_with(filename, "_conf.pyc") &&
+            !str_ends_with(filename, ".pyc");
 }
 
 void modules_init(char *modules_path) {
@@ -65,7 +97,7 @@ void modules_init(char *modules_path) {
     if (d) {
         while ((dir = readdir(d)) != NULL) {
             char *filename = dir->d_name;
-            if (*filename != '.' && !EndsWith(filename, "~") && !EndsWith(filename, ".conf") && !EndsWith(filename, "_conf.py")) {
+            if (is_valid_module(filename)) {
                 moduleCount++;
             }
         }
@@ -79,7 +111,7 @@ void modules_init(char *modules_path) {
         if (d) {
             while ((dir = readdir(d)) != NULL) {
                 char *filename = dir->d_name;
-                if (*filename != '.' && !EndsWith(filename, "~") && !EndsWith(filename, ".conf") && !EndsWith(filename, "_conf.py")) {
+                if (is_valid_module(filename)) {
                     modules_[moduleCount++] = strdup(filename);
                     swdiag_debug(NULL, "Added MODULE '%s'", modules_[moduleCount-1]);
                 }
@@ -113,9 +145,7 @@ boolean modules_process_config() {
                 }
                 if (pclose(fp) == 0) {
                     // Parse and process the configuration.
-                    char request[MAXBUFLEN + 1];
-                    snprintf(request, MAXBUFLEN, "\"configuration\":{%s}", configuration);
-                    ret = process_json_request(modules_[i], request, NULL);
+                    ret = process_json_request(modules_[i], configuration, NULL);
                 }
             }
         }
@@ -153,15 +183,10 @@ swdiag_result_t swdiag_server_exec_test(const char *instance, void *context, lon
         }
         pclose(fp);
         if (newLen != 0) {
-            char *request = calloc(MAXBUFLEN, sizeof(char));
-            if (request) {
-                int len = snprintf(request, MAXBUFLEN, "\"results\":{%s}", test_results);
-                if (process_json_request(testcontext->module_name, request, NULL)) {
-                    result = SWDIAG_RESULT_IN_PROGRESS;
-                } else {
-                    result = SWDIAG_RESULT_ABORT;
-                }
-                free(request);
+            if (process_json_request(testcontext->module_name, test_results, NULL)) {
+                result = SWDIAG_RESULT_IN_PROGRESS;
+            } else {
+                result = SWDIAG_RESULT_ABORT;
             }
         } else {
             result = SWDIAG_RESULT_ABORT;
@@ -202,13 +227,8 @@ swdiag_result_t swdiag_server_exec_action(const char *instance, void *context) {
         }
         pclose(fp);
         if (newLen != 0) {
-            char *request = calloc(MAXBUFLEN, sizeof(char));
-            if (request) {
-                int len = snprintf(request, MAXBUFLEN, "\"results\":{%s}", test_results);
-                process_json_request(testcontext->module_name, request, NULL);
-                result = SWDIAG_RESULT_IN_PROGRESS;
-                free(request);
-            }
+            process_json_request(testcontext->module_name, test_results, NULL);
+            result = SWDIAG_RESULT_IN_PROGRESS;
         } else {
             result = SWDIAG_RESULT_ABORT;
         }
@@ -232,12 +252,26 @@ swdiag_result_t swdiag_server_email(const char *instance, void *context) {
 
     if (email) {
         char *to = email->to;
+        char body[MAXBUFLEN];
+
         if (*to == '\0') {
             to = server_config.alert_email_to;
         }
 
+        if (email->command[0] != '\0') {
+            FILE *fp = popen(email->command, "r");
+            if (fp != NULL) {
+                size_t newLen = fread(body, sizeof(char), MAXBUFLEN, fp);
+                if (newLen != 0) {
+                    body[++newLen] = '\0';
+                }
+                pclose(fp);
+            }
+        } else {
+            strncpy(body, email->subject, MAXBUFLEN-1);
+        }
         /* I'm hardcoding the hostname to swdiag-server - it's not AFAIK important anyway. */
-        send_mail(server_config.smtp_hostname, "swdiag-server", server_config.alert_email_from, to, email->subject, NULL, email->subject);
+        send_mail(server_config.smtp_hostname, "swdiag-server", server_config.alert_email_from, to, email->subject, server_config.alert_email_from, body);
     }
 
     return result;
