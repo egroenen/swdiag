@@ -20,7 +20,7 @@ fi
 
 if [ "$1" == "--conf" ]; then
 cat <<EOF
-"comp":{"name":"Diskspace"},
+["comp":{"name":"Diskspace"},
 
 "test":{"name":"diskspace_low_free_test",
 		"polled" : true,
@@ -60,6 +60,7 @@ done
 
 cat <<EOF
 "ready":["diskspace_low_free_test"]
+]
 
 EOF
 fi

@@ -48,9 +48,9 @@ static void *https_request_callback(enum mg_event event,
     const struct mg_request_info *request_info = mg_get_request_info(conn);
 
     if (event == MG_NEW_REQUEST) {
-        char content[1024];
+        char content[1024]; // TODO set this size properly, not on the stack!! When we change to JSON...
         int content_length = 0;
-        cli_info_element_t *element;
+        cli_info_element_t *element, *element_instance;
         cli_type_t type;
 
         if (strcmp(request_info->uri, "/tabcontent/1") == 0) {
@@ -82,7 +82,7 @@ static void *https_request_callback(enum mg_event event,
                                     "                Name   Now/Conf    Runs Passes  Fails\n");
                         while(element != NULL) {
                             content_length += snprintf(content + content_length, sizeof(content),
-                                    "%20s %s%5.1f/%-5.1f%s %6d %6d %6d\n", element->name, (element->health/10 < 100) ? "<span style=\"color:red;\">" : "", element->health/10.0, element->confidence/10.0, element->health/10 < 100 ? "</span>" : "", element->stats.runs, element->stats.passes, element->stats.failures);
+                                    "%20s %s%5.1f/%-5.1f%s %6d %6d %6d\n", element->name, (element->health/10 < 100) ? "<span style=\"color:red;\">" : ((element->confidence/10 < 100) ? "<span style=\"color:orange;\">" :""), element->health/10.0, element->confidence/10.0, element->confidence/10 < 100 ? "</span>" : "", element->stats.runs, element->stats.passes, element->stats.failures);
                             element = element->next;
                         }
                         break;
@@ -95,6 +95,20 @@ static void *https_request_callback(enum mg_event event,
                     case CLI_RULE:
                         while(element != NULL) {
                             content_length += snprintf(content + content_length, sizeof(content), "Rule %s %d %d %d\n", element->name, element->stats.runs, element->stats.passes, element->stats.failures);
+                            // Does this rule have any instances? if so get them and the info for each one.
+                            unsigned int handle_instance = swdiag_cli_local_get_info_handle(element->name, CLI_RULE_INSTANCE,
+                                                                                            CLI_FILTER_NONE, NULL);
+                            if (handle_instance != 0) {
+                                cli_info_t *info_instance = swdiag_cli_local_get_instance_info(handle_instance, MAX_LOCAL);
+                                if (info_instance != NULL) {
+                                    element_instance = info_instance->elements;
+                                    while (element_instance != NULL) {
+                                        content_length += snprintf(content + content_length, sizeof(content), "      <span style='%s'> %s %d %d %d</span>\n", (element_instance->last_result == SWDIAG_RESULT_FAIL) ? "color:red" : "", element_instance->name, element_instance->stats.runs, element_instance->stats.passes, element_instance->stats.failures);
+                                        element_instance = element_instance->next;
+                                    }
+                                }
+
+                            }
                             element = element->next;
                         }
                         break;

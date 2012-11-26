@@ -138,7 +138,7 @@
  * Use for tests that should run every so often.
  * Default is 10 minutes.
  */
-#define SWDIAG_PERIOD_NORMAL (1000 * 60 * 10)
+#define SWDIAG_PERIOD_NORMAL (1000 * 60 * 1)
 /**
  * Use for tests that should not be run frequently, possibly because the 
  * test takes a while to complete.
@@ -1376,7 +1376,7 @@ void swdiag_instance_delete(const char *object,
 
 /** Set the absolute health of a component
  * 
- * Set the abosulte health on a component ignoring the health of
+ * Set the absolute health on a component ignoring the health of
  * the rules and component objects within that component.
  *
  * @param[in] component_name Name of the component to set the health on
@@ -1385,7 +1385,7 @@ void swdiag_instance_delete(const char *object,
 void swdiag_health_set(const char *component_name,
                        unsigned int health);
 
-/** Get the absoulte health of a component
+/** Get the absolute health of a component
  * 
  * @param[in] component_name Name of the component
  * @returns The health of the component as an integer between 0 and 1000, i.e. to convert to a percentage divde by 10

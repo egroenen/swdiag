@@ -28,6 +28,9 @@
 /*
  * Declare the API for OS independent CLI code to use when obtaining 
  * SW Diags CLI info from local SW Diags instances.
+ *
+ * This is all a bit quirky because of the way that some router OSs
+ * handle their CLI. It really needs better documentation and examples.
  */
 
 #include "swdiag_cli.h"
@@ -2016,6 +2019,9 @@ static cli_data_t *get_child_depend (cli_handle_t *handle,
 
 /*
  * swdiag_cli_get_depend_or_trigger_data_local()
+ *
+ * TODO
+ *
  * This shall get all actions, input rules, output triggers for rule.
  * If it is test it shows all underneath rules. Also it would get data of 
  * child and parent dependencies.
@@ -2056,7 +2062,9 @@ cli_data_t *swdiag_cli_local_get_depend_or_trigger_data (unsigned int handle_id,
         case CLI_NVGEN:
             /* no action */
             return (NULL);    
-    }    
+    }
+
+    // TODO
     return (NULL);
 }    
 

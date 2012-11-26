@@ -50,6 +50,7 @@
 
 int debug_flag = 0;
 int terminal = 0;
+int webserver = 0;
 
 /**
  * The server
@@ -71,6 +72,7 @@ int main (int argc, char **argv)
             {"modules", required_argument, 0, 'm'},
             {"config", required_argument, 0, 'c'},
             {"terminal", no_argument, &terminal, 1},
+            {"webserver", no_argument, &webserver, 1},
             {0,0,0,0}
     };
 
@@ -174,7 +176,7 @@ int main (int argc, char **argv)
     // Starting server here...
     swdiag_sched_initialize();
 
-    if (!swdiag_webserver_start()) {
+    if (webserver && !swdiag_webserver_start()) {
         fprintf(stderr, "ERROR: Failed to start the webserver, exiting. Do you have another instance of the swdiag-server already running?\n");
         exit(2);
     }

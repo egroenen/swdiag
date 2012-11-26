@@ -13,30 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-/**
- * PUI Object 
- */
-PUI = {
-    
-    /**
-     *  Aligns container scrollbar to keep item in container viewport, algorithm copied from jquery-ui menu widget
-     */
-    scrollInView: function(container, item) {        
-        var borderTop = parseFloat(container.css('borderTopWidth')) || 0,
-        paddingTop = parseFloat(container.css('paddingTop')) || 0,
-        offset = item.offset().top - container.offset().top - borderTop - paddingTop,
-        scroll = container.scrollTop(),
-        elementHeight = container.height(),
-        itemHeight = item.outerHeight(true);
-
-        if(offset < 0) {
-            container.scrollTop(scroll + offset);
-        }
-        else if((offset + itemHeight) > elementHeight) {
-            container.scrollTop(scroll + offset - elementHeight + itemHeight);
-        }
-    }
-};$(function(){$.widget("prime-ui.puiaccordion",{options:{activeIndex:0,multiple:false},_create:function(){if(this.options.multiple){this.options.activeIndex=[]
+PUI={scrollInView:function(b,e){var h=parseFloat(b.css("borderTopWidth"))||0,d=parseFloat(b.css("paddingTop"))||0,f=e.offset().top-b.offset().top-h-d,a=b.scrollTop(),c=b.height(),g=e.outerHeight(true);
+if(f<0){b.scrollTop(a+f)
+}else{if((f+g)>c){b.scrollTop(a+f-c+g)
+}}}};$(function(){$.widget("prime-ui.puiaccordion",{options:{activeIndex:0,multiple:false},_create:function(){if(this.options.multiple){this.options.activeIndex=[]
 }var a=this;
 this.element.addClass("pui-accordion ui-widget ui-helper-reset");
 this.element.children("h3").addClass("pui-accordion-header ui-helper-reset ui-state-default").each(function(c){var f=$(this),e=f.html(),d=(c==a.options.activeIndex)?"ui-state-active ui-corner-top":"ui-corner-all",b=(c==a.options.activeIndex)?"ui-icon ui-icon-triangle-1-s":"ui-icon ui-icon-triangle-1-e";
@@ -80,6 +60,68 @@ b.attr("aria-hidden",false).slideDown("normal")
 },_addToSelection:function(a){this.options.activeIndex.push(a)
 },_removeFromSelection:function(a){this.options.activeIndex=$.grep(this.options.activeIndex,function(b){return b!=a
 })
+}})
+});$(function(){$.widget("prime-ui.puibutton",{options:{icon:null,iconPos:"left"},_create:function(){var b=this.element,d=b.text()||"pui-button",c=b.prop("disabled"),a=null;
+if(this.options.icon){a=(d==="pui-button")?"pui-button-icon-only":"pui-button-text-icon-"+this.options.iconPos
+}else{a="pui-button-text-only"
+}if(c){a+=" ui-state-disabled"
+}this.element.addClass("pui-button ui-widget ui-state-default ui-corner-all "+a).text("");
+if(this.options.icon){this.element.append('<span class="pui-button-icon-'+this.options.iconPos+" ui-icon "+this.options.icon+'" />')
+}this.element.append('<span class="pui-button-text">'+d+"</span>");
+b.attr("role","button").attr("aria-disabled",c);
+if(!c){this._bindEvents()
+}},_bindEvents:function(){var a=this.element,b=this;
+a.on("mouseover.puibutton",function(){if(!a.prop("disabled")){a.addClass("ui-state-hover")
+}}).on("mouseout.puibutton",function(){$(this).removeClass("ui-state-active ui-state-hover")
+}).on("mousedown.puibutton",function(){if(!a.hasClass("ui-state-disabled")){a.addClass("ui-state-active").removeClass("ui-state-hover")
+}}).on("mouseup.puibutton",function(c){a.removeClass("ui-state-active").addClass("ui-state-hover");
+b._trigger("click",c)
+}).on("focus.puibutton",function(){a.addClass("ui-state-focus")
+}).on("blur.puibutton",function(){a.removeClass("ui-state-focus")
+}).on("keydown.puibutton",function(c){if(c.keyCode==$.ui.keyCode.SPACE||c.keyCode==$.ui.keyCode.ENTER||c.keyCode==$.ui.keyCode.NUMPAD_ENTER){a.addClass("ui-state-active")
+}}).on("keyup.puibutton",function(){a.removeClass("ui-state-active")
+});
+return this
+},_unbindEvents:function(){this.element.off("mouseover.puibutton mouseout.puibutton mousedown.puibutton mouseup.puibutton focus.puibutton blur.puibutton keydown.puibutton keyup.puibutton")
+},disable:function(){this._unbindEvents();
+this.element.addClass("ui-state-disabled")
+},enable:function(){this._bindEvents();
+this.element.removeClass("ui-state-disabled")
+}})
+});$(function(){$.widget("prime-ui.puigrowl",{options:{sticky:false,life:3000},_create:function(){var a=this.element;
+a.addClass("pui-growl ui-widget").appendTo(document.body)
+},show:function(a){var b=this;
+this.clear();
+$.each(a,function(c,d){b._renderMessage(d)
+})
+},clear:function(){this.element.children("div.pui-growl-item-container").remove()
+},_renderMessage:function(c){var a='<div class="pui-growl-item-container ui-state-highlight ui-corner-all ui-helper-hidden pui-shadow" aria-live="polite">';
+a+='<div class="pui-growl-item">';
+a+='<div class="pui-growl-icon-close ui-icon ui-icon-closethick" style="display:none"></div>';
+a+='<span class="pui-growl-image pui-growl-image-'+c.severity+'" />';
+a+='<div class="pui-growl-message">';
+a+='<span class="pui-growl-title">'+c.summary+"</span>";
+a+="<p>"+c.detail+"</p>";
+a+='</div><div style="clear: both;"></div></div></div>';
+var b=$(a);
+this._bindMessageEvents(b);
+b.appendTo(this.element).fadeIn()
+},_removeMessage:function(a){a.fadeTo("normal",0,function(){a.slideUp("normal","easeInOutCirc",function(){a.remove()
+})
+})
+},_bindMessageEvents:function(a){var c=this,b=this.options.sticky;
+a.on("mouseover.puigrowl",function(){var d=$(this);
+if(!d.is(":animated")){d.find("div.pui-growl-icon-close:first").show()
+}}).on("mouseout.puigrowl",function(){$(this).find("div.pui-growl-icon-close:first").hide()
+});
+a.find("div.pui-growl-icon-close").on("click.puigrowl",function(){c._removeMessage(a);
+if(!b){clearTimeout(a.data("timeout"))
+}});
+if(!b){this._setRemovalTimeout(a)
+}},_setRemovalTimeout:function(a){var c=this;
+var b=setTimeout(function(){c._removeMessage(a)
+},this.options.life);
+a.data("timeout",b)
 }})
 });$(function(){$.widget("prime-ui.puiinputtext",{_create:function(){var a=this.element,b=a.prop("disabled");
 a.addClass("pui-inputtext ui-widget ui-state-default ui-corner-all");
