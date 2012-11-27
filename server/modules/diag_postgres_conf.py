@@ -14,8 +14,8 @@ critical_pg_idle_count=20
 #
 # Total Number of postgresql processes
 #
-warning_pg_count=9
-critical_pg_count=12
+warning_pg_count=90
+critical_pg_count=120
 
 #
 # Health of component drops under 50% for 3 periods
