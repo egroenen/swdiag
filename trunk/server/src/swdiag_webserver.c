@@ -30,6 +30,12 @@
 
 #include "swdiag_server_config.h"
 
+/**
+ * Maximum size of a HTTP response, default to 10kb. If need be we can extend this
+ * within the server when we reach the maximum (rather than crashing :)
+ */
+#define MAX_HTTP_RESPONSE_SIZE (1024*10)
+
 /*
  * Simple hello world callback. In reality we need to have an authorise callback
  * that will authorise the connection and setup a session. That session is then
@@ -48,11 +54,16 @@ static void *https_request_callback(enum mg_event event,
     const struct mg_request_info *request_info = mg_get_request_info(conn);
 
     if (event == MG_NEW_REQUEST) {
-        char content[1024]; // TODO set this size properly, not on the stack!! When we change to JSON...
+        char *content;
         int content_length = 0;
         cli_info_element_t *element, *element_instance;
         cli_type_t type;
 
+        content = malloc(MAX_HTTP_RESPONSE_SIZE);
+
+        if (!content) {
+            return NULL;
+        }
         if (strcmp(request_info->uri, "/tabcontent/1") == 0) {
             type = CLI_COMPONENT;
         } else if (strcmp(request_info->uri, "/tabcontent/2") == 0) {
@@ -73,39 +84,41 @@ static void *https_request_callback(enum mg_event event,
             if (handle != 0) {
                 cli_info_t *info = swdiag_cli_local_get_info(handle, MAX_LOCAL);
 
-                if (info != NULL) {
+                while (info != NULL) {
                     element = info->elements;
                     switch(element->type) {
                     case CLI_COMPONENT:
-                        content_length += snprintf(content + content_length, sizeof(content),
+                        content_length += snprintf(content + content_length, MAX_HTTP_RESPONSE_SIZE-content_length,
                                     "                         Health \n"
                                     "                Name   Now/Conf    Runs Passes  Fails\n");
                         while(element != NULL) {
-                            content_length += snprintf(content + content_length, sizeof(content),
+                            content_length += snprintf(content + content_length, MAX_HTTP_RESPONSE_SIZE-content_length,
                                     "%20s %s%5.1f/%-5.1f%s %6d %6d %6d\n", element->name, (element->health/10 < 100) ? "<span style=\"color:red;\">" : ((element->confidence/10 < 100) ? "<span style=\"color:orange;\">" :""), element->health/10.0, element->confidence/10.0, element->confidence/10 < 100 ? "</span>" : "", element->stats.runs, element->stats.passes, element->stats.failures);
                             element = element->next;
                         }
                         break;
                     case CLI_TEST:
                         while(element != NULL) {
-                            content_length += snprintf(content + content_length, sizeof(content), "Test %s %s %d %d %d\n", element->name, swdiag_cli_state_to_str(element->state), element->stats.runs, element->stats.passes, element->stats.failures);
+                            content_length += snprintf(content + content_length, MAX_HTTP_RESPONSE_SIZE-content_length, "Test %s %s %d %d %d\n", element->name, swdiag_cli_state_to_str(element->state), element->stats.runs, element->stats.passes, element->stats.failures);
                             element = element->next;
                         }
                         break;
                     case CLI_RULE:
                         while(element != NULL) {
-                            content_length += snprintf(content + content_length, sizeof(content), "Rule %s %d %d %d\n", element->name, element->stats.runs, element->stats.passes, element->stats.failures);
+                            content_length += snprintf(content + content_length, MAX_HTTP_RESPONSE_SIZE-content_length, "Rule %s %d %d %d\n", element->name, element->stats.runs, element->stats.passes, element->stats.failures);
                             // Does this rule have any instances? if so get them and the info for each one.
                             unsigned int handle_instance = swdiag_cli_local_get_info_handle(element->name, CLI_RULE_INSTANCE,
                                                                                             CLI_FILTER_NONE, NULL);
                             if (handle_instance != 0) {
                                 cli_info_t *info_instance = swdiag_cli_local_get_instance_info(handle_instance, MAX_LOCAL);
-                                if (info_instance != NULL) {
+                                while (info_instance != NULL) {
                                     element_instance = info_instance->elements;
                                     while (element_instance != NULL) {
-                                        content_length += snprintf(content + content_length, sizeof(content), "      <span style='%s'> %s %d %d %d</span>\n", (element_instance->last_result == SWDIAG_RESULT_FAIL) ? "color:red" : "", element_instance->name, element_instance->stats.runs, element_instance->stats.passes, element_instance->stats.failures);
+                                        content_length += snprintf(content + content_length, MAX_HTTP_RESPONSE_SIZE-content_length, "      <span style='%s'> %s %d %d %d</span>\n", (element_instance->last_result == SWDIAG_RESULT_FAIL) ? "color:red" : "", element_instance->name, element_instance->stats.runs, element_instance->stats.passes, element_instance->stats.failures);
                                         element_instance = element_instance->next;
                                     }
+                                    free(info_instance);
+                                    info_instance = swdiag_cli_local_get_instance_info(handle_instance, MAX_LOCAL);
                                 }
 
                             }
@@ -114,21 +127,22 @@ static void *https_request_callback(enum mg_event event,
                         break;
                     case CLI_ACTION:
                         while(element != NULL) {
-                            content_length += snprintf(content + content_length, sizeof(content), "Action %s %d %d %d\n", element->name, element->stats.runs, element->stats.passes, element->stats.failures);
+                            content_length += snprintf(content + content_length, MAX_HTTP_RESPONSE_SIZE-content_length, "Action %s %d %d %d\n", element->name, element->stats.runs, element->stats.passes, element->stats.failures);
                             element = element->next;
                         }
                         break;
                     }
-                    content_length += 12; // For pre's below
-                    mg_printf(conn,
-                            "HTTP/1.1 200 OK\r\n"
-                            "Content-Type: text/plain\r\n"
-                            "Content-Length: %d\r\n"        // Always set Content-Length
-                            "\r\n"
-                            "<pre>%s</pre>",
-                            content_length, content);
                     free(info);
+                    info = swdiag_cli_local_get_info(handle, MAX_LOCAL);
                 }
+                content_length += 12; // For pre's below
+                mg_printf(conn,
+                        "HTTP/1.1 200 OK\r\n"
+                        "Content-Type: text/plain\r\n"
+                        "Content-Length: %d\r\n"        // Always set Content-Length
+                        "\r\n"
+                        "<pre>%s</pre>",
+                        content_length, content);
             }
         } else {
             processed = NULL;

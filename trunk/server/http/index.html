@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-<link rel="stylesheet" type="text/css" href="prime-ui-0.1/production/prime-ui-0.1-min.css" />
+<link rel="stylesheet" type="text/css" href="prime-ui-0.2/production/prime-ui-0.2-min.css" />
 <link rel="stylesheet" type="text/css" href="jquery-ui-1.9.1.custom/css/start/jquery-ui-1.9.1.custom.min.css"/>
 
 <script src="jquery-ui-1.9.1.custom/js/jquery-1.8.2.js"></script>
@@ -9,7 +9,7 @@
 <script src="prime-ui-0.2/production/prime-ui-0.2-min.js"></script>
 
 <script type="text/javascript">
-        
+    var timer;
     var swdiag = {
     	    refreshInterval: 5000,
     };
@@ -23,7 +23,7 @@
             success: function(data) {  
                 $('#dynamic').children('div.pui-tabview-panels').children().eq(index).html(data);
                 if ($('#dynamic').puitabview('getActiveIndex') == index) {
-                    window.setTimeout(function(){swdiag.refreshPanel(event, index)}, swdiag.refreshInterval);
+                    timer = window.setTimeout(function(){swdiag.refreshPanel(event, index)}, swdiag.refreshInterval);
                 }
             }
         });
@@ -33,6 +33,7 @@
     $(function() {
        $('#dynamic').puitabview({
     	   change: function(event, index) {
+    		   window.clearTimeout(timer);
     		   swdiag.refreshPanel(event, index);
     	   },
        });

@@ -2366,8 +2366,7 @@ static boolean process_freeme_queue (void)
                  * that may be keeping a reference to this object, if
                  * not found then free it.
                  */
-                //swdiag_trace("Freeing memory for '%s'", 
-                //             swdiag_obj_instance_name(instance));
+                //swdiag_trace(swdiag_obj_instance_name(instance), "Freeing memory in garbage collector '%s'", swdiag_obj_instance_name(instance));
 
                 free(instance->name);
                 if (swdiag_obj_is_member_instance(instance)) {
