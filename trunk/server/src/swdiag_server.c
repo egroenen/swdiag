@@ -59,8 +59,8 @@ int main (int argc, char **argv)
 {
     pthread_t rpc_thread_id;
     int rc;
-    char *modules_path = "/etc/swdiag/modules";
-    char *config_path = "/etc/swdiag/server.conf";
+    char *modules_path = "/usr/share/swdiag/modules";
+    char *config_path = "/etc/swdiag/swdiag.cfg";
     char *logging_path="/var/log/swdiag.log";
     char *http_path="/usr/share/swdiag/http";
     char *http_port="7654";
@@ -71,6 +71,7 @@ int main (int argc, char **argv)
             {"debug", no_argument, &debug_flag, 1},
             {"modules", required_argument, 0, 'm'},
             {"config", required_argument, 0, 'c'},
+            {"http",   required_argument, 0, 'w'},
             {"terminal", no_argument, &terminal, 1},
             {"webserver", no_argument, &webserver, 1},
             {0,0,0,0}
@@ -79,7 +80,7 @@ int main (int argc, char **argv)
     while (1) {
         int option_index = 0;
 
-        c = getopt_long(argc, argv, "m:c:", long_options, &option_index);
+        c = getopt_long(argc, argv, "m:c:w:", long_options, &option_index);
 
         if (c == -1)
             break;
@@ -90,10 +91,14 @@ int main (int argc, char **argv)
                 break;
             break;
         case 'm':
+            // TODO free these
             modules_path = strdup(optarg);
             break;
         case 'c':
             config_path = strdup(optarg);
+            break;
+        case 'w':
+            http_path = strdup(optarg);
             break;
         default:
             fprintf(stderr, "Usage: %s [-m <module-path>] [-c <config-path>] [--debug] [--webserver]\n", argv[0]);

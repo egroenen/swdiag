@@ -114,6 +114,10 @@ boolean process_json_request(char *module, char *request, char *reply) {
     unsigned int n = calc_max_tokens(request);
     jsmntok_t *tokens = calloc(n+1, sizeof(jsmntok_t));
 
+    if (!tokens) {
+        swdiag_error("Memory allocation error");
+        return FALSE;
+    }
     int ret = jsmn_parse(&parser, request, tokens, n);
 
     if (ret == JSMN_ERROR_INVAL)
@@ -210,6 +214,8 @@ static boolean parse_command(char *module, char *request, jsmntok_t **token_ptr,
             ret = FALSE;
         }
     } else {
+        swdiag_error("Module '%s': Configuration contains invalid command type '%s'", module, json_token_to_str(request, token));
+        (*token_ptr)++;
         ret = FALSE;
     }
     return ret;
@@ -365,6 +371,10 @@ static boolean parse_test(char *module, char *request, jsmntok_t **token_ptr, ch
             swdiag_error("Module '%s': Configuration missing attributes for test", module);
         }
     }
+
+    if (!ret) {
+        swdiag_error("Module '%s': Configuration parse_test failure '%s'", module, json_token_to_str(request, token));
+    }
     return ret;
 }
 
@@ -411,6 +421,10 @@ static boolean parse_comp(char *module, char *request, jsmntok_t **token_ptr, ch
                 swdiag_comp_contains(parent_comp, comp_name);
             }
         }
+    }
+
+    if (!ret) {
+        swdiag_error("Module '%s': Configuration parse_comp failure '%s'", module, json_token_to_str(request, token));
     }
     return ret;
 }
@@ -574,6 +588,10 @@ static boolean parse_rule(char *module, char *request, jsmntok_t **token_ptr, ch
             }
         }
     }
+
+    if (!ret) {
+        swdiag_error("Module '%s': Configuration parse_rule failure '%s'", module, json_token_to_str(request, token));
+    }
     return ret;
 }
 
@@ -620,6 +638,10 @@ static boolean parse_action(char *module, char *request, jsmntok_t **token_ptr, 
             }
         }
 
+    }
+
+    if (!ret) {
+        swdiag_error("Module '%s': Configuration parse_action failure '%s'", module, json_token_to_str(request, token));
     }
     return ret;
 }
@@ -728,6 +750,10 @@ static boolean parse_email(char *module, char *request, jsmntok_t **token_ptr, c
             }
         }
     }
+
+    if (!ret) {
+        swdiag_error("Module '%s': Configuration parse_email failure '%s'", module, json_token_to_str(request, token));
+    }
     return ret;
 }
 
@@ -797,6 +823,10 @@ static boolean parse_instance(char *module, char *request, jsmntok_t **token_ptr
             }
         }
     }
+
+    if (!ret) {
+        swdiag_error("Module '%s': Configuration parse_instance failure '%s'", module, json_token_to_str(request, token));
+    }
     return ret;
 }
 
@@ -822,6 +852,10 @@ static boolean parse_test_ready(char *module, char *request, jsmntok_t **token_p
             }
             ret = TRUE;
         }
+    }
+
+    if (!ret) {
+        swdiag_error("Module '%s': Configuration parse_test_ready failure '%s'", module, json_token_to_str(request, token));
     }
     return ret;
 }
@@ -896,6 +930,10 @@ static boolean parse_result(char *module, char *request, jsmntok_t **token_ptr, 
         if (ret == TRUE && test_name != NULL) {
             swdiag_test_notify(test_name, instance_name, result, value);
         }
+    }
+
+    if (!ret) {
+        swdiag_error("Module '%s': parse_result failure '%s'", module, json_token_to_str(request, token));
     }
     return ret;
 }

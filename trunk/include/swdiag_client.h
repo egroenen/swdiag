@@ -126,6 +126,9 @@
  * @note The schedular changes the frequencies based on system load, also
  * please use these defines since the values may be changed without notice 
  * in the future.
+ *
+ * You can also use any user defined period as well, but then it wont fit in
+ * a queue with other tests.
  */
 /* @{ */
 /**
@@ -136,15 +139,15 @@
 #define SWDIAG_PERIOD_FAST   (1000 * 60)
 /**
  * Use for tests that should run every so often.
- * Default is 10 minutes.
+ * Default is 5 minutes.
  */
-#define SWDIAG_PERIOD_NORMAL (1000 * 60 * 10)
+#define SWDIAG_PERIOD_NORMAL (1000 * 60 * 5)
 /**
  * Use for tests that should not be run frequently, possibly because the 
  * test takes a while to complete.
- * Default is 1 hour.
+ * Default is 30 mins.
  */
-#define SWDIAG_PERIOD_SLOW   (1000 * 60 * 60)
+#define SWDIAG_PERIOD_SLOW   (1000 * 60 * 30)
 /* @} */
 
 /** 

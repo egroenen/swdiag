@@ -207,6 +207,8 @@ xos_timer_t *swdiag_xos_timer_create (xos_timer_expiry_fn_t *fn, void *context)
         return (NULL);
     }
 
+    memset(&sev, 0, sizeof(sev));
+
     // Set up a timer that triggers that signal
     sev.sigev_notify = SIGEV_SIGNAL;
     sev.sigev_signo = posix_timer_signal;

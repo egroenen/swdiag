@@ -414,7 +414,7 @@ cli_handle_t *swdiag_cli_local_handle_allocate (cli_type_t type,
         handles_in_use = swdiag_list_create();    
     }
 
-    handle = calloc(sizeof(cli_handle_t), 1);
+    handle = calloc(1, sizeof(cli_handle_t));
     if (!handle) {
         swdiag_error("Not enough memory to allocate handle");
         return(0);
@@ -590,7 +590,7 @@ void *swdiag_cli_local_get_single_info (unsigned int handle_id)
             state == OBJ_STATE_DISABLED ||
             state == OBJ_STATE_CREATED ||
             state == OBJ_STATE_INITIALIZED) {
-            cli_comp = calloc(sizeof(cli_comp_t), 1);
+            cli_comp = calloc(1, sizeof(cli_comp_t));
             if (cli_comp == NULL) {
                 swdiag_error("%s - No memory to allocate cli comp obj", 
                     fnstr);
@@ -630,7 +630,7 @@ void *swdiag_cli_local_get_single_info (unsigned int handle_id)
             state == OBJ_STATE_DISABLED ||
             state == OBJ_STATE_CREATED ||
             state == OBJ_STATE_INITIALIZED) {
-            cli_test = calloc(sizeof(cli_test_t), 1);
+            cli_test = calloc(1, sizeof(cli_test_t));
             if (cli_test == NULL) {
                 swdiag_error("No memory to allocate cli test obj");
                 swdiag_cli_local_handle_reset_in_use_flag(handle);
@@ -678,7 +678,7 @@ void *swdiag_cli_local_get_single_info (unsigned int handle_id)
             state == OBJ_STATE_DISABLED ||
             state == OBJ_STATE_CREATED ||
             state == OBJ_STATE_INITIALIZED) {
-            cli_action = calloc(sizeof(cli_action_t), 1);
+            cli_action = calloc(1, sizeof(cli_action_t));
             if (cli_action == NULL) {
                 swdiag_error("No memory to allocate cli action obj");
                 swdiag_cli_local_handle_reset_in_use_flag(handle);
@@ -720,7 +720,7 @@ void *swdiag_cli_local_get_single_info (unsigned int handle_id)
             state == OBJ_STATE_DISABLED ||
             state == OBJ_STATE_CREATED ||
             state == OBJ_STATE_INITIALIZED) {
-            cli_rule = calloc(sizeof(cli_rule_t), 1);
+            cli_rule = calloc(1, sizeof(cli_rule_t));
             if (cli_rule == NULL) {
                 swdiag_error("No memory to allocate cli rule obj");
                 swdiag_cli_local_handle_reset_in_use_flag(handle);
@@ -822,7 +822,7 @@ cli_instance_t *swdiag_cli_local_get_single_instance_info (unsigned int handle_i
         state == OBJ_STATE_CREATED ||
         state == OBJ_STATE_INITIALIZED) {
         stats = &instance->stats;
-        cli_inst = calloc(sizeof(cli_instance_t), 1);
+        cli_inst = calloc(1, sizeof(cli_instance_t));
         if (!cli_inst) {
             swdiag_error("%s -Not enough memory", fnstr);
             swdiag_cli_local_handle_reset_in_use_flag(handle);
@@ -919,7 +919,7 @@ cli_info_t *swdiag_cli_local_get_instance_info (unsigned int handle_id,
     swdiag_debug(NULL, "%s - type (%d) filter (%d)", fnstr, handle->type, 
                  handle->filter);
 
-    cli_info = calloc(sizeof(cli_info_t), 1);
+    cli_info = calloc(1, sizeof(cli_info_t));
 
     if (cli_info == NULL) {
         swdiag_error("%s - No memory to allocate cli instance info", fnstr);
@@ -960,11 +960,12 @@ cli_info_t *swdiag_cli_local_get_instance_info (unsigned int handle_id,
             }    
             
             if (process) {
-                element = calloc(sizeof(cli_info_element_t), 1);
+                element = calloc(1, sizeof(cli_info_element_t));
                 if (!element) {
                     swdiag_cli_local_handle_reset_in_use_flag(handle);
                     handle_clean_up(handle);
-                    break;
+                    swdiag_obj_db_unlock();
+                    return(cli_info);
                 }
                 /*
                  * Setup contents of element
@@ -1000,7 +1001,8 @@ cli_info_t *swdiag_cli_local_get_instance_info (unsigned int handle_id,
             !swdiag_obj_instance_validate(instance, cli_to_obj_type(type))) {
             swdiag_cli_local_handle_reset_in_use_flag(handle);
             handle_clean_up(handle);
-            break;
+            swdiag_obj_db_unlock();
+            return(cli_info);
         }
         handle_set_instance(handle, instance);
     } /* end of while */
@@ -1010,6 +1012,20 @@ cli_info_t *swdiag_cli_local_get_instance_info (unsigned int handle_id,
     return(cli_info);
 }
 
+/**
+ * Free up the cli_info when finished with it.
+ */
+void swdiag_cli_local_free_info(cli_info_t *info) {
+    cli_info_element_t *element = info->elements;
+    cli_info_element_t *element_free = NULL;
+
+    while (element != NULL) {
+        element_free = element;
+        element = element->next;
+        free(element_free);
+    }
+    free(info);
+}
 /*
  * swdiag_cli_get_info_local()
  *
@@ -1045,7 +1061,7 @@ cli_info_t *swdiag_cli_local_get_info (unsigned int handle_id,
         return (NULL);
     }
     
-    cli_info = calloc(sizeof(cli_info_t), 1);
+    cli_info = calloc(1, sizeof(cli_info_t));
     if (cli_info == NULL) {
         swdiag_error("%s - No memory to allocate cli data", fnstr);
         handle_clean_up(handle);
@@ -1186,7 +1202,7 @@ cli_info_t *swdiag_cli_local_get_info (unsigned int handle_id,
             }    
             
             if (process) {
-                element = calloc(sizeof(cli_info_element_t), 1);
+                element = calloc(1, sizeof(cli_info_element_t));
                 if (!element) {
                     swdiag_error("No memory to allocate element");
                     break;
@@ -1269,6 +1285,8 @@ cli_info_t *swdiag_cli_local_get_info (unsigned int handle_id,
                 !swdiag_obj_validate(obj, cli_to_obj_type(handle->type))) {
                 swdiag_cli_local_handle_reset_in_use_flag(handle);
                 handle_clean_up(handle);
+                swdiag_obj_db_unlock();
+                return(cli_info);
             } else { 
                 handle_set_instance(handle, &obj->i);
             }
@@ -1294,7 +1312,8 @@ cli_info_t *swdiag_cli_local_get_info (unsigned int handle_id,
             swdiag_cli_local_handle_reset_in_use_flag(handle);
             handle_clean_up(handle);
             obj = NULL;
-            break;
+            swdiag_obj_db_unlock();
+            return(cli_info);
         }
     }
     swdiag_cli_local_handle_reset_in_use_flag(handle);
@@ -1393,18 +1412,19 @@ cli_data_t *swdiag_cli_local_get_strucs_in_comp (unsigned int handle_id,
         last_obj = handle->last_obj;
     }    
 
-    cli_info = calloc(sizeof(cli_data_t), 1);
+    cli_info = calloc(1, sizeof(cli_data_t));
     if (cli_info == NULL) {
         swdiag_error("%s - No memory to allocate cli info in get strucs", fnstr);
         swdiag_cli_local_handle_reset_in_use_flag(handle);
         handle_clean_up(handle);
+        swdiag_obj_db_unlock();
         return (cli_info);
     }
     count = 0;
     cli_info->elements = NULL;
     last_element = NULL;
     while (last_obj && count < max_mtu) {
-        cli_element = calloc(sizeof(cli_data_element_t), 1);
+        cli_element = calloc(1, sizeof(cli_data_element_t));
         if (!cli_element) {
             swdiag_error("No memory to allocate cli element");
             break;
@@ -1430,6 +1450,8 @@ cli_data_t *swdiag_cli_local_get_strucs_in_comp (unsigned int handle_id,
             if (!last_obj || !swdiag_obj_validate(last_obj, last_obj->type)) {
                 swdiag_cli_local_handle_reset_in_use_flag(handle);
                 handle_clean_up(handle);
+                swdiag_obj_db_unlock();
+                return(cli_info);
             } else {    
                 handle_set_last_obj(handle, last_obj);
             }
@@ -1448,8 +1470,9 @@ cli_data_t *swdiag_cli_local_get_strucs_in_comp (unsigned int handle_id,
             }
             swdiag_cli_local_handle_reset_in_use_flag(handle);
             handle_clean_up(handle);
+            swdiag_obj_db_unlock();
             last_obj = NULL;
-            break;
+            return(cli_info);
         }
     } /* end of while */
 
@@ -1495,7 +1518,7 @@ static cli_data_t  *get_test_rules (cli_handle_t *handle,
         last_obj = handle->last_obj;
     }    
 
-    cli_info = calloc(sizeof(cli_data_t), 1);
+    cli_info = calloc(1, sizeof(cli_data_t));
     if (cli_info == NULL) {
         swdiag_error("%s - No memory to allocate cli data", fnstr);
         swdiag_cli_local_handle_reset_in_use_flag(handle);
@@ -1509,7 +1532,7 @@ static cli_data_t  *get_test_rules (cli_handle_t *handle,
     last_element = NULL;
 
     while (last_obj && count < max_mtu) {
-        cli_element = calloc(sizeof(cli_data_element_t), 1);
+        cli_element = calloc(1, sizeof(cli_data_element_t));
         if (!cli_element) {
             swdiag_error("%s - No memory to allocate cli element", fnstr);
             break;
@@ -1534,6 +1557,8 @@ static cli_data_t  *get_test_rules (cli_handle_t *handle,
             if (!last_obj || !swdiag_obj_validate(last_obj, last_obj->type)) {
                 swdiag_cli_local_handle_reset_in_use_flag(handle);
                 handle_clean_up(handle);
+                swdiag_obj_db_unlock();
+                return(NULL);
             } else {    
                 handle_set_last_obj(handle, last_obj);
             }
@@ -1635,7 +1660,7 @@ static cli_data_t *get_rule_actions_or_inputs (cli_handle_t *handle,
         return (cli_info);
     }        
 
-    cli_info = calloc(sizeof(cli_data_t), 1);
+    cli_info = calloc(1, sizeof(cli_data_t));
     if (cli_info == NULL) {
         swdiag_error("No memory to allocate cli data");
         swdiag_cli_local_handle_reset_in_use_flag(handle);
@@ -1647,7 +1672,7 @@ static cli_data_t *get_rule_actions_or_inputs (cli_handle_t *handle,
     count = 0;
     cli_info->elements = NULL;
     while (element_obj && count < max_mtu) {
-        cli_element = calloc(sizeof(cli_data_element_t), 1);
+        cli_element = calloc(1, sizeof(cli_data_element_t));
         if (!cli_element) {
             swdiag_error("%s - No memory to allocate cli element", fnstr);
             clean_up_handle = TRUE;
@@ -1732,7 +1757,7 @@ static cli_data_t *get_rule_output (cli_handle_t *handle,
         return (NULL);
     }    
 
-    cli_info = calloc(sizeof(cli_data_t), 1);
+    cli_info = calloc(1, sizeof(cli_data_t));
     if (cli_info == NULL) {
         swdiag_error("No memory to allocate cli data");
         swdiag_cli_local_handle_reset_in_use_flag(handle);
@@ -1750,7 +1775,7 @@ static cli_data_t *get_rule_output (cli_handle_t *handle,
             clean_up_handle = TRUE;
             break;
         }
-        cli_element = calloc(sizeof(cli_data_element_t), 1);
+        cli_element = calloc(1, sizeof(cli_data_element_t));
         if (!cli_element) {
             swdiag_error("No memory to allocate cli element");
             clean_up_handle = TRUE;
@@ -1848,7 +1873,7 @@ static cli_data_t *get_parent_depend (cli_handle_t *handle,
         return (cli_info);
     }        
     
-    cli_info = calloc(sizeof(cli_data_t), 1);
+    cli_info = calloc(1, sizeof(cli_data_t));
     if (cli_info == NULL) {
         swdiag_error("No memory to allocate cli data");
         swdiag_cli_local_handle_reset_in_use_flag(handle);
@@ -1860,7 +1885,7 @@ static cli_data_t *get_parent_depend (cli_handle_t *handle,
     count = 0;
     cli_info->elements = NULL;
     while (parent_obj && count < mtu) {
-        cli_element = calloc(sizeof(cli_data_element_t), 1);
+        cli_element = calloc(1, sizeof(cli_data_element_t));
         if (!cli_element) {
             swdiag_error("No memory to allocate cli element");
             clean_up_handle = TRUE;
@@ -1963,7 +1988,7 @@ static cli_data_t *get_child_depend (cli_handle_t *handle,
         return (cli_info);
     }        
 
-    cli_info = calloc(sizeof(cli_data_t), 1);
+    cli_info = calloc(1, sizeof(cli_data_t));
     if (cli_info == NULL) {
         swdiag_error("No memory to allocate cli data");
         swdiag_cli_local_handle_reset_in_use_flag(handle);
@@ -1975,7 +2000,7 @@ static cli_data_t *get_child_depend (cli_handle_t *handle,
     count = 0;
     cli_info->elements = NULL;
     while (child_obj && count < mtu) {
-        cli_element = calloc(sizeof(cli_data_element_t), 1);
+        cli_element = calloc(1, sizeof(cli_data_element_t));
         if (!cli_element) {
             swdiag_error("No memory to allocate cli element");
             clean_up_handle = TRUE;
@@ -2146,7 +2171,7 @@ cli_data_t *swdiag_cli_local_get_connected_instances_between_objects
         swdiag_obj_db_unlock();
         return (cli_info);
     }        
-    cli_info = calloc(sizeof(cli_data_t), 1);
+    cli_info = calloc(1, sizeof(cli_data_t));
     if (cli_info == NULL) {
         swdiag_error("No memory to allocate cli data");
         swdiag_cli_local_handle_reset_in_use_flag(handle);
@@ -2174,7 +2199,7 @@ cli_data_t *swdiag_cli_local_get_connected_instances_between_objects
         }
 
         if (found_instance) {
-            cli_element = calloc(sizeof(cli_data_element_t), 1);
+            cli_element = calloc(1, sizeof(cli_data_element_t));
             if (!cli_element) {
                 swdiag_error("%s - No memory to allocate cli element", 
                     fnstr);
@@ -2493,7 +2518,7 @@ swdiag_cli_local_get_instance_option_tbl (cli_handle_t *handle,
         return (NULL);
     }    
 
-    cli_obj_name = calloc(sizeof(cli_obj_name_t), 1);
+    cli_obj_name = calloc(1, sizeof(cli_obj_name_t));
 
     if (!cli_obj_name) {
         swdiag_error("Invalid CLI handle");
@@ -2510,7 +2535,7 @@ swdiag_cli_local_get_instance_option_tbl (cli_handle_t *handle,
     last_element = NULL;
     instance = handle->instance;
     while (instance && count < max_mtu) {
-        element = calloc(sizeof(cli_obj_name_element_t), 1);
+        element = calloc(1, sizeof(cli_obj_name_element_t));
         if (!element) {
             swdiag_error("No memory to allocate an element in optiontbl local");
             clean_up_handle = TRUE;
@@ -2596,7 +2621,7 @@ cli_obj_name_t *swdiag_cli_local_get_option_tbl (unsigned int handle_id,
         return (cli_obj_name);
     }    
 
-    cli_obj_name = calloc(sizeof(cli_obj_name_t), 1);
+    cli_obj_name = calloc(1, sizeof(cli_obj_name_t));
     if (!cli_obj_name) {
         swdiag_error("Not enough memory to allocate cli names");
         swdiag_cli_local_handle_reset_in_use_flag(handle);
@@ -2616,7 +2641,7 @@ cli_obj_name_t *swdiag_cli_local_get_option_tbl (unsigned int handle_id,
     last_element = NULL;
 
     while (obj && count < max_mtu) {
-        element = calloc(sizeof(cli_obj_name_element_t), 1);
+        element = calloc(1, sizeof(cli_obj_name_element_t));
         if (!element) {
             swdiag_error("No memory to allocate an element in optiontbl local");
             clean_up_handle = TRUE;
@@ -2681,7 +2706,7 @@ cli_obj_name_t *swdiag_cli_local_get_option_tbl (unsigned int handle_id,
             /* This handle has remote entries so reinit flag to FALSE */
             clean_up_handle = FALSE;
             if (remote_obj->remote_location) {
-                element = calloc(sizeof(cli_obj_name_element_t), 1);
+                element = calloc(1, sizeof(cli_obj_name_element_t));
                 if (!element) {
                     swdiag_error("No memory to allocate an element in "
                         "option table local");
@@ -2925,7 +2950,7 @@ void swdiag_cli_local_test_command_internal (
         /* Leaking memory. This will be called by 
          * test guys for internal test only.
          */ 
-        context = calloc(sizeof(polled_test_context), 1);
+        context = calloc(1, sizeof(polled_test_context));
         swdiag_test_create_polled(cli_name1, test_fn, 
                                  (void *)context, period);
         swdiag_test_enable(cli_name1, NULL);
@@ -2938,7 +2963,7 @@ void swdiag_cli_local_test_command_internal (
          * I am not verifying if it is polled or notification test.
          * Just pass a context
          */ 
-        context = calloc(sizeof(polled_test_context), 1);
+        context = calloc(1, sizeof(polled_test_context));
         swdiag_instance_create(cli_name1, cli_name2, (void *)context);
         break;
     case SWDIAG_EXEC_COMP_CONTAINS: 
@@ -3118,10 +3143,10 @@ cli_debug_t *swdiag_cli_local_debug_get (void)
     char *ptr;
 
     if (swdiag_debug_enabled()) {
-        debugs = calloc(sizeof(cli_debug_t), 1);
+        debugs = calloc(1, sizeof(cli_debug_t));
         filters = swdiag_debug_filters_get();
         if (debugs && filters && filters->num_elements > 0) {
-            debugs->filters = calloc((sizeof(char*) * SWDIAG_MAX_NAME_LEN), filters->num_elements);
+            debugs->filters = calloc(filters->num_elements, (sizeof(char*) * SWDIAG_MAX_NAME_LEN));
             if (debugs->filters) {
                 for(element = filters->head, i = 0; element && i < filters->num_elements; i++) {
                     ptr = debugs->filters + (i * SWDIAG_MAX_NAME_LEN);

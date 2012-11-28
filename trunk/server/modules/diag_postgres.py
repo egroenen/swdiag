@@ -29,6 +29,7 @@ parser.add_option("-i", "--instance", action="store", type="string", dest="insta
 
 (options, args) = parser.parse_args()
 
+pickle_filename='/var/tmp/diag_pg_proc_pkl'
 def loadPostgresProcesses():
     pids=[pid for pid in os.listdir('/proc') if pid.isdigit()]
     pg_pids = {}
@@ -44,6 +45,10 @@ def loadPostgresProcesses():
     
 def main():
     if options.conf:
+        try:
+            os.remove(pickle_filename)
+        except OSError:
+            pass
         # Can't use a structure and json libs 'cos they are not in python 2.4
         print '''[{"comp":{"name":"Postgres"}},
                 {"test":{"name":"pg_poll_processes",
@@ -138,9 +143,9 @@ def main():
             if options.testname == 'pg_poll_processes':
                 pg_procs_current = loadPostgresProcesses()
                 # Read in the old values and reconcile the instances
-                if os.path.exists('/var/tmp/diag_pg_proc_pkl'):
+                if os.path.exists(pickle_filename):
                     try:
-                        pkl_file = open('/var/tmp/diag_pg_proc_pkl', 'rb')
+                        pkl_file = open(pickle_filename, 'rb')
                         pg_procs_old = pickle.load(pkl_file)
                         pkl_file.close()
                         # Look for new ones
@@ -164,7 +169,7 @@ def main():
                         print ''
                                      
                 # Write existing ones out for next time
-                pkl_file = open('/var/tmp/diag_pg_proc_pkl', 'wb+')
+                pkl_file = open(pickle_filename, 'wb+')
                 pickle.dump(pg_procs_current, pkl_file)
                 pkl_file.close()
                 
