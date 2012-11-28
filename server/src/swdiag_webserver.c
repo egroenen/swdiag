@@ -56,7 +56,7 @@ static void *https_request_callback(enum mg_event event,
     if (event == MG_NEW_REQUEST) {
         char *content;
         int content_length = 0;
-        cli_info_element_t *element, *element_instance;
+        cli_info_element_t *element, *element_free, *element_instance, *element_instance_free;
         cli_type_t type;
 
         content = malloc(MAX_HTTP_RESPONSE_SIZE);
@@ -117,10 +117,9 @@ static void *https_request_callback(enum mg_event event,
                                         content_length += snprintf(content + content_length, MAX_HTTP_RESPONSE_SIZE-content_length, "      <span style='%s'> %s %d %d %d</span>\n", (element_instance->last_result == SWDIAG_RESULT_FAIL) ? "color:red" : "", element_instance->name, element_instance->stats.runs, element_instance->stats.passes, element_instance->stats.failures);
                                         element_instance = element_instance->next;
                                     }
-                                    free(info_instance);
+                                    swdiag_cli_local_free_info(info_instance);
                                     info_instance = swdiag_cli_local_get_instance_info(handle_instance, MAX_LOCAL);
                                 }
-
                             }
                             element = element->next;
                         }
@@ -132,7 +131,7 @@ static void *https_request_callback(enum mg_event event,
                         }
                         break;
                     }
-                    free(info);
+                    swdiag_cli_local_free_info(info);
                     info = swdiag_cli_local_get_info(handle, MAX_LOCAL);
                 }
                 content_length += 12; // For pre's below
@@ -147,6 +146,7 @@ static void *https_request_callback(enum mg_event event,
         } else {
             processed = NULL;
         }
+        free(content);
     } else {
         // Not processed, let mongoose handle it (e.g. a static page).
         processed = NULL;;
@@ -163,6 +163,8 @@ boolean swdiag_webserver_start() {
     static const char *options[] = {"listening_ports", server_config.http_port,
                                     "document_root", server_config.http_root,
                                     "num_threads", "5",
+                                    "error_log_file", "/var/tmp/swdiag_web_error.log",
+                                    "access_log_file", "/var/tmp/swdiag_web_access.log",
                                     NULL};
 
     ctx = mg_start(&https_request_callback, NULL, options);

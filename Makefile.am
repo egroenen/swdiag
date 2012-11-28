@@ -4,17 +4,22 @@ bin_PROGRAMS =
 
 check_PROGRAMS =
 
+EXTRA_DIST = LICENSE
+
 ###############################################################################
 
 libswdiag_la_LDFLAGS = \
     $(AM_LDFLAGS) \
     -version-number $(PROJECT_version_major):$(PROJECT_version_minor):$(PROJECT_version_point) $(X_libswdiag_la_LDFLAGS)
 
+
 libswdiag_la_SOURCES = \
     src/swdiag_api.c                     \
     src/swdiag_api.h                     \
     src/swdiag_cli.h                     \
     src/swdiag_cli_local.c               \
+    src/swdiag_cli_local.h               \
+    src/swdiag_cli_handle.h              \
     src/swdiag_linux.c                   \
     src/swdiag_linux.h                   \
     src/swdiag_obj.c                     \
@@ -79,19 +84,61 @@ bin_PROGRAMS += swdiag
 
 swdiag_SOURCES    = server/src/swdiag_server.c \
                     server/src/swdiag_server_module.c \
+                    server/src/swdiag_server_module.h \
                     server/src/swdiag_server_config.c \
+                    server/src/swdiag_server_config.h \
                     server/src/mongoose/mongoose.c \
+                    server/src/mongoose/mongoose.h \
                     server/src/jsmn/jsmn.c \
+                    server/src/jsmn/jsmn.h \
                     server/src/smtpfuncs.c \
+                    server/src/smtpfuncs.h \
                     server/src/swdiag_json_parser.c \
+                    server/src/swdiag_json_parser.h \
                     server/src/swdiag_webserver.c \
+                    server/src/swdiag_webserver.h \
                     server/src/swdiag_server_libinterface.c
 
+swdiag_CFLAGS = -DNO_SSL_DL
+
 # dynamically linked
-swdiag_LDADD      = libswdiag.la $(X_LDFLAGS) -lnsl -lpthread -lrt -ldl
+swdiag_LDADD      = libswdiag.la $(X_LDFLAGS) -lnsl -lpthread -lrt -ldl -lssl
 
 # static link it
 swdiag_LDFLAGS    = -static
+
+swdiag_modulesdir    = $(datadir)/swdiag/server/modules
+dist_swdiag_modules_SCRIPTS = \
+                    server/modules/diag_diskspace.sh \
+                    server/modules/diag_diskspace.sh.conf \
+                    server/modules/diag_memory_conf.py \
+                    server/modules/diag_memory.py \
+                    server/modules/diag_postgres_conf.py \
+                    server/modules/diag_postgres.py
+
+swdiag_htmldir    = $(datadir)/swdiag/
+nobase_dist_swdiag_html_DATA = \
+                    server/http/prime-ui-0.2/production/prime-ui-0.2-min.js \
+                    server/http/prime-ui-0.2/production/prime-ui-0.2-min.css \
+                    server/http/index.html \
+                    server/http/jquery-ui-1.9.1.custom/css/start/jquery-ui-1.9.1.custom.min.css \
+                    server/http/jquery-ui-1.9.1.custom/css/start/images/ui-bg_gloss-wave_75_2191c0_500x100.png \
+                    server/http/jquery-ui-1.9.1.custom/css/start/images/ui-bg_flat_75_aaaaaa_40x100.png \
+                    server/http/jquery-ui-1.9.1.custom/css/start/images/ui-bg_inset-hard_100_fcfdfd_1x100.png \
+                    server/http/jquery-ui-1.9.1.custom/css/start/images/ui-bg_gloss-wave_45_e14f1c_500x100.png \
+                    server/http/jquery-ui-1.9.1.custom/css/start/images/ui-icons_d8e7f3_256x240.png \
+                    server/http/jquery-ui-1.9.1.custom/js/jquery-ui-1.9.1.custom.min.js \
+                    server/http/jquery-ui-1.9.1.custom/js/jquery-1.8.2.js
+
+
+#init_ddir         = $(sysconfdir)/rc.d/init.d
+#init_d_SCRIPTS    = server/init/swdiag
+
+swdiag_confdir    = $(sysconfdir)
+dist_swdiag_conf_DATA = server/swdiag.cfg
+
+dist-hook:
+	rm -rf `find $(distdir)/server -type d -name .svn`
 
 endif
 
@@ -114,7 +161,7 @@ libswdiaginc_HEADERS = \
 
 ###############################################################################
 
-EXTRA_DIST = project/project.m4
+EXTRA_DIST += project/project.m4
 
 ###############################################################################
 
@@ -124,6 +171,24 @@ distclean-local:
 	rm -f $(top_builddir)/Makefile
 	rm -f $(top_builddir)/testlog/*.log
 	rm -f $(top_builddir)/testlog/*.sum
+
+###############################################################################
+# Build source and binary rpms. For rpm-3.0 and above, the ~/.rpmmacros
+# must contain the following line:
+# %_topdir /home/<username>/rpm
+# cd /home/<username>/rpm ; mkdir -p SOURCES BUILD RPMS/i386 SPECS SRPMS
+
+rpm:
+	$(MAKE) distdir ; \
+	mv $(PACKAGE)-$(VERSION) $(PACKAGE)-0.0.1 ; \
+	tar cvzf $(PACKAGE)-0.0.1.tar.gz $(PACKAGE)-0.0.1 ; \
+	$(RM) -rf $(PACKAGE)-0.0.1 ; \
+	RPM_TOPDIR=`rpm --showrc | perl -n -e 'print if(s/.*_topdir\s+(.*)/$$1/)'` ; \
+	cp $(srcdir)/packages/rpm/swdiag.spec $$RPM_TOPDIR/SPECS ; \
+	cp $(PACKAGE)-0.0.1.tar.gz $$RPM_TOPDIR/SOURCES/ ; \
+	rpmbuild -ba --clean --rmsource $$RPM_TOPDIR/SPECS/$(PACKAGE).spec ; \
+	mv $$RPM_TOPDIR/RPMS/x86_64/$(PACKAGE)-*.rpm . ; \
+	mv $$RPM_TOPDIR/SRPMS/$(PACKAGE)-*.src.rpm .
 
 ###############################################################################
 
@@ -155,7 +220,6 @@ Makefile: ${Makefile}
 	touch $@
 	$(mkdir_p) $(TESTLOGDIR)
 
-dist-hook:
 
 ###############################################################################
 

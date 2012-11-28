@@ -91,7 +91,7 @@ static unsigned char bit_count (unsigned char data)
 
     if (!bitvalues) {
         unsigned char val;
-        bitvalues = malloc(255);
+        bitvalues = (unsigned char*)malloc(256 * sizeof(unsigned char));
         if (bitvalues) {
             for(j = 0; j <= 255; j++) {
                 val = j;
@@ -729,13 +729,13 @@ static swdiag_result_t seq_rule_run (obj_instance_t *instance,
              * Allocate it - must be the first time through or the
              * rule type was changed.
              */
-            instance->rule_data = calloc(sizeof(obj_rule_data_t), 0);
+            instance->rule_data = calloc(1, sizeof(obj_rule_data_t));
             if (instance->rule_data) {
                 /*
                  * Allocate the history bits
                  */
                 int history_size = (rule->op_m / 8) + 1;
-                instance->rule_data->history = calloc(history_size, 0);
+                instance->rule_data->history = calloc(1, history_size);
                 instance->rule_data->history_size = history_size;
             }
         }

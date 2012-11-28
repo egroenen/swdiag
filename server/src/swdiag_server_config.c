@@ -81,7 +81,11 @@ boolean config_parse(char *filename) {
 
         if (fp != NULL) {
             // Have a file that we can read, parse it.
-            char configuration[MAXBUFLEN + 1];
+            char *configuration = calloc(MAXBUFLEN + 1, sizeof(char));
+            if (!configuration) {
+                fprintf(stderr, "Error: memory allocation failure '%s'\n", filename);
+                return FALSE;
+            }
             size_t newLen = fread(configuration, sizeof(char), MAXBUFLEN, fp);
             if (newLen == 0) {
                 fprintf(stderr, "Error: empty configuration for file '%s'\n", filename);
@@ -92,6 +96,7 @@ boolean config_parse(char *filename) {
                 // Parse and process the configuration.
                 ret = config_parse_configuration(configuration);
             }
+            free(configuration);
         } else {
             fprintf(stderr, "Warning: Could not open the swdiag-server configuration file '%s'\n", filename);
             return ret;
@@ -121,10 +126,13 @@ static boolean config_parse_configuration(char *configuration) {
 
     // Process the tokens using our parser, filling in the
     // reply if required.
-    if (ret == JSMN_SUCCESS)
-        return parse_tuples(configuration, tokens);
-    else
+    if (ret == JSMN_SUCCESS) {
+        boolean retval = parse_tuples(configuration, tokens);
+        free(tokens);
+        return retval;
+    } else {
         return FALSE;
+    }
 }
 
 /**
@@ -133,9 +141,14 @@ static boolean config_parse_configuration(char *configuration) {
  */
 static boolean parse_tuples(char *configuration, jsmntok_t *tokens) {
     boolean ret = TRUE;
+    jsmntok_t *token;
     jsmntok_t **token_ptr = malloc(sizeof(void*));
+
+    if (!token_ptr) {
+        return FALSE;
+    }
     *token_ptr = &tokens[0];
-    jsmntok_t *token = *token_ptr;
+    token = *token_ptr;
 
     while (ret && is_valid_token(token)) {
         if (is_valid_token(token) && token->type == JSMN_PRIMITIVE) {
@@ -244,7 +257,9 @@ static boolean parse_tuples(char *configuration, jsmntok_t *tokens) {
         }
         token = *token_ptr;
     }
-
+    if (token_ptr) {
+        free(token_ptr);
+    }
     return ret;
 }
 

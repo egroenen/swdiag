@@ -71,7 +71,7 @@ boolean is_configured_module(const char *filename) {
     int i;
 
     for(i = 0; i < server_config.num_modules; i++) {
-        if (str_starts_with(filename, server_config.modules[i])) {
+        if (strcmp(filename, server_config.modules[i]) == 0) {
             return TRUE;
         }
     }
@@ -85,6 +85,7 @@ boolean is_valid_module(const char *filename) {
             !str_ends_with(filename, ".conf") &&
             !str_ends_with(filename, "_conf.py") &&
             !str_ends_with(filename, "_conf.pyc") &&
+            !str_ends_with(filename, "_conf.pyo") &&
             !str_ends_with(filename, ".pyc");
 }
 
@@ -125,10 +126,19 @@ boolean modules_process_config() {
     boolean ret = FALSE;
     int i;
     if (modules_ != NULL)  {
+        char *configuration = calloc(MAXBUFLEN+1, sizeof(char));
+        char *filename = malloc(MAXBUFLEN+1);
+
+        if (!filename || !configuration || strlen(modules_path_) > (MAXBUFLEN/2)) {
+            fprintf(stderr, "Error: memory allocation failure\n");
+            return FALSE;
+        }
         for (i = 0; i < moduleCount; i++) {
             swdiag_debug(NULL, "Processing configuration for MODULE '%s'", modules_[i]);
-            char configuration[MAXBUFLEN + 1];
-            char *filename = malloc(strlen(modules_path_) + strlen(modules_[i]) + 7);
+            if (strlen(modules_[i]) > (MAXBUFLEN/2)) {
+                fprintf(stderr, "Error: filename too long\n");
+                return FALSE;
+            }
             strcpy(filename, modules_path_);
             strcat(filename, "/");
             strcat(filename, modules_[i]);
@@ -137,11 +147,12 @@ boolean modules_process_config() {
             FILE *fp = popen(filename, "r");
             if (fp != NULL) {
                 size_t newLen = fread(configuration, sizeof(char), MAXBUFLEN, fp);
+                swdiag_trace(NULL, "Reading module configuration '%s', %d bytes read", filename, newLen);
                 if (newLen == 0) {
                     fprintf(stderr, "Error: empty configuration for module file '%s'\n", filename);
                     break;
                 } else {
-                    configuration[++newLen] = '\0'; /* Just to be safe. */
+                    configuration[newLen] = '\0'; /* Just to be safe. */
                 }
                 if (pclose(fp) == 0) {
                     // Parse and process the configuration.
@@ -149,6 +160,8 @@ boolean modules_process_config() {
                 }
             }
         }
+        free(filename);
+        free(configuration);
     }
     return ret;
 }
@@ -163,8 +176,14 @@ swdiag_result_t swdiag_server_exec_test(const char *instance, void *context, lon
     int rc;;
 
     swdiag_debug(NULL, "Module %s: Test %s instance %s is being run", testcontext->module_name, testcontext->test_name, instance);
-    char *test_results = calloc(MAXBUFLEN, sizeof(char));
+    char *test_results = calloc(MAXBUFLEN+1, sizeof(char));
     char *filename = malloc(strlen(modules_path_) + MAXBUFLEN);
+
+    if (!filename || !test_results) {
+        fprintf(stderr, "Error: memory allocation failure\n");
+        return FALSE;
+    }
+
     strcpy(filename, modules_path_);
     strcat(filename, "/");
     strcat(filename, testcontext->module_name);
@@ -179,7 +198,7 @@ swdiag_result_t swdiag_server_exec_test(const char *instance, void *context, lon
     if (fp != NULL) {
         size_t newLen = fread(test_results, sizeof(char), MAXBUFLEN, fp);
         if (newLen != 0) {
-            test_results[++newLen] = '\0'; /* Just to be safe. */
+            test_results[newLen] = '\0'; /* Just to be safe. */
         }
         pclose(fp);
         if (newLen != 0) {
@@ -192,6 +211,10 @@ swdiag_result_t swdiag_server_exec_test(const char *instance, void *context, lon
             result = SWDIAG_RESULT_ABORT;
         }
     }
+
+    free(test_results);
+    free(filename);
+
 
     return result;
 }
@@ -207,8 +230,14 @@ swdiag_result_t swdiag_server_exec_action(const char *instance, void *context) {
     int rc;;
 
     swdiag_debug(NULL, "Module %s: Test %s instance %s is being run", testcontext->module_name, testcontext->test_name, instance);
-    char *test_results = calloc(MAXBUFLEN, sizeof(char));
+    char *test_results = calloc(MAXBUFLEN+1, sizeof(char));
     char *filename = malloc(strlen(modules_path_) + MAXBUFLEN);
+
+    if (!filename || !test_results) {
+        fprintf(stderr, "Error: memory allocation failure\n");
+        return FALSE;
+    }
+
     strcpy(filename, modules_path_);
     strcat(filename, "/");
     strcat(filename, testcontext->module_name);
@@ -223,7 +252,7 @@ swdiag_result_t swdiag_server_exec_action(const char *instance, void *context) {
     if (fp != NULL) {
         size_t newLen = fread(test_results, sizeof(char), MAXBUFLEN, fp);
         if (newLen != 0) {
-            test_results[++newLen] = '\0'; /* Just to be safe. */
+            test_results[newLen] = '\0'; /* Just to be safe. */
         }
         pclose(fp);
         if (newLen != 0) {
@@ -233,6 +262,9 @@ swdiag_result_t swdiag_server_exec_action(const char *instance, void *context) {
             result = SWDIAG_RESULT_ABORT;
         }
     }
+
+    free(test_results);
+    free(filename);
 
     return result;
 }
@@ -263,7 +295,7 @@ swdiag_result_t swdiag_server_email(const char *instance, void *context) {
             if (fp != NULL) {
                 size_t newLen = fread(body, sizeof(char), MAXBUFLEN, fp);
                 if (newLen != 0) {
-                    body[++newLen] = '\0';
+                    body[newLen] = '\0';
                 }
                 pclose(fp);
             }

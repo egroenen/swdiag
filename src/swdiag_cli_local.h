@@ -49,6 +49,7 @@ unsigned int swdiag_cli_local_get_info_handle(const char *name,
                                               cli_type_filter_t filter,
                                               const char *instance_name);
 
+void swdiag_cli_local_free_info(cli_info_t *info);
 cli_info_t *swdiag_cli_local_get_info(unsigned int handle_id, 
                                       unsigned int max);
 cli_info_t *swdiag_cli_local_get_instance_info(unsigned int handle_id, 

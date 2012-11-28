@@ -452,7 +452,7 @@ static boolean allocate_object_type (obj_t *obj, obj_type_t type)
 
     switch (type) {
     case OBJ_TYPE_TEST: 
-        obj->t.test = calloc(sizeof(obj_test_t), 1);
+        obj->t.test = calloc(1, sizeof(obj_test_t));
         if (obj->t.test) {
             obj->t.test->ident = obj_idents[OBJ_TYPE_TEST];
             obj->t.test->obj = obj;
@@ -461,7 +461,7 @@ static boolean allocate_object_type (obj_t *obj, obj_type_t type)
         }
         break;
     case OBJ_TYPE_RULE: 
-        obj->t.rule = calloc(sizeof(obj_rule_t), 1);
+        obj->t.rule = calloc(1, sizeof(obj_rule_t));
         if (obj->t.rule) {
             obj->t.rule->ident = obj_idents[OBJ_TYPE_RULE];
             obj->t.rule->obj = obj;
@@ -472,7 +472,7 @@ static boolean allocate_object_type (obj_t *obj, obj_type_t type)
         }
         break;
     case OBJ_TYPE_ACTION: 
-        obj->t.action = calloc(sizeof(obj_action_t), 1);
+        obj->t.action = calloc(1, sizeof(obj_action_t));
         if (obj->t.action) {
             obj->t.action->ident = obj_idents[OBJ_TYPE_ACTION];
             obj->t.action->obj = obj;
@@ -482,7 +482,7 @@ static boolean allocate_object_type (obj_t *obj, obj_type_t type)
         }
         break;
     case OBJ_TYPE_COMP:
-        obj->t.comp = calloc(sizeof(obj_comp_t), 1);
+        obj->t.comp = calloc(1, sizeof(obj_comp_t));
         if (obj->t.comp) {
             obj->t.comp->ident = obj_idents[OBJ_TYPE_COMP];
             obj->t.comp->obj = obj;
@@ -963,10 +963,7 @@ obj_t *swdiag_obj_get_or_create (char *obj_name, obj_type_t type)
         if (!obj) {
             swdiag_error("Could not create system component");
             return (NULL);
-        }   
-        obj->t.comp->top_depend = swdiag_list_create();
-        obj->t.comp->bottom_depend = swdiag_list_create();
-        obj->t.comp->interested_test_objs = swdiag_list_create();
+        }
         obj->t.comp->health = 1000;
         obj->t.comp->confidence = 1000;
         obj->i.state = OBJ_STATE_ENABLED;
@@ -1030,7 +1027,7 @@ obj_t *swdiag_obj_get_or_create (char *obj_name, obj_type_t type)
     /*
      * This object is unknown. Lets allocate and zero the base object.
      */
-    obj = calloc(sizeof(obj_t), 1);
+    obj = calloc(1, sizeof(obj_t));
     if (!obj) {
         swdiag_error("Alloc of %s object '%s'", swdiag_obj_type_str(type), obj_name);
         return (NULL);
@@ -1984,7 +1981,7 @@ obj_instance_t *swdiag_obj_instance_create (obj_t *obj,
 {
     obj_instance_t *instance;
 
-    instance = calloc(sizeof(obj_instance_t), 1);
+    instance = calloc(1, sizeof(obj_instance_t));
 
     if (!instance) {
         swdiag_error("Failed allocation of instance '%s'", instance_name);
