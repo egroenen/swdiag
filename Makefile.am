@@ -102,7 +102,7 @@ swdiag_SOURCES    = server/src/swdiag_server.c \
 swdiag_CFLAGS = -DNO_SSL_DL
 
 # dynamically linked
-swdiag_LDADD      = libswdiag.la $(X_LDFLAGS) -lnsl -lpthread -lrt -ldl -lssl
+swdiag_LDADD      = libswdiag.la $(X_LDFLAGS) -lnsl -lpthread -lrt -ldl -lssl -lcrypto
 
 # static link it
 swdiag_LDFLAGS    = -static

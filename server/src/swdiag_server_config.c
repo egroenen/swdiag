@@ -79,6 +79,8 @@ boolean config_parse(char *filename) {
     if (filename) {
         FILE *fp = fopen(filename, "r");
 
+        swdiag_debug(NULL, "Parsing Configuration '%s'", filename);
+
         if (fp != NULL) {
             // Have a file that we can read, parse it.
             char *configuration = calloc(MAXBUFLEN + 1, sizeof(char));

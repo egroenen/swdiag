@@ -60,6 +60,7 @@ int main (int argc, char **argv)
     pthread_t rpc_thread_id;
     int rc;
     char *modules_path = "/usr/share/swdiag/modules";
+    char *new_modules_path = NULL;
     char *config_path = "/etc/swdiag/swdiag.cfg";
     char *logging_path="/var/log/swdiag.log";
     char *http_path="/usr/share/swdiag/http";
@@ -92,7 +93,7 @@ int main (int argc, char **argv)
             break;
         case 'm':
             // TODO free these
-            modules_path = strdup(optarg);
+            new_modules_path = strdup(optarg);
             break;
         case 'c':
             config_path = strdup(optarg);
@@ -101,7 +102,7 @@ int main (int argc, char **argv)
             http_path = strdup(optarg);
             break;
         default:
-            fprintf(stderr, "Usage: %s [-m <module-path>] [-c <config-path>] [--debug] [--webserver]\n", argv[0]);
+            fprintf(stderr, "Usage: %s [-m <module-path>] [-c <config-path>] [--debug] [--webserver] [--terminal]\n", argv[0]);
             exit(1);
         }
     }
@@ -120,8 +121,12 @@ int main (int argc, char **argv)
         strncpy(server_config.smtp_hostname, "localhost", HOSTNAME_MAX-1);
     }
 
-    if (server_config.modules_path[0] == '\0') {
-        strncpy(server_config.modules_path, modules_path, FILEPATH_MAX-1);
+    if (new_modules_path == NULL) {
+    	if (server_config.modules_path[0] == '\0') {
+    		strncpy(server_config.modules_path, modules_path, FILEPATH_MAX-1);
+    	}
+    } else {
+    	strncpy(server_config.modules_path, new_modules_path, FILEPATH_MAX-1);
     }
 
     if (server_config.http_root[0] == '\0') {
