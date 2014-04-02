@@ -105,6 +105,8 @@ void modules_init(char *modules_path) {
         closedir(d);
     }
 
+    swdiag_debug(NULL, "Processing modules from %s, %d files found", modules_path, moduleCount);
+
     if (moduleCount > 0) {
         modules_ = (char**) calloc(moduleCount, sizeof(void*));
         moduleCount = 0;
@@ -115,6 +117,8 @@ void modules_init(char *modules_path) {
                 if (is_valid_module(filename)) {
                     modules_[moduleCount++] = strdup(filename);
                     swdiag_debug(NULL, "Added MODULE '%s'", modules_[moduleCount-1]);
+                } else {
+                    swdiag_debug(NULL, "Invalid MODULE '%s'", filename);
                 }
             }
             closedir(d);

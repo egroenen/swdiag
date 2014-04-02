@@ -81,7 +81,7 @@ AC_ARG_ENABLE([mingw_mt],
 ###############################################################################
 
 AC_PROG_CXX
-AC_PROG_CC
+#AC_PROG_CC
 AC_PROG_CPP
 AC_PROG_INSTALL
 AC_PROG_LN_S
