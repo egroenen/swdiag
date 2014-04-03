@@ -133,10 +133,13 @@
 /* @{ */
 /**
  * Use for tests that should run as quickly as possible, each test should 
- * run quickly so as to not block other tests from running.
+ * run quickly so as to not block other tests from running (must be greater
+ * than 1 second).
+ *
  * Default is 1 minute.
  */
 #define SWDIAG_PERIOD_FAST   (1000 * 60)
+
 /**
  * Use for tests that should run every so often.
  * Default is 5 minutes.

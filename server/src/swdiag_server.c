@@ -64,6 +64,7 @@ int main (int argc, char **argv)
     char *config_path = "/etc/swdiag/swdiag.cfg";
     char *logging_path="/var/log/swdiag.log";
     char *http_path="/usr/share/swdiag/http";
+    char *new_http_path = NULL;
     char *http_port="7654";
     int c;
     pid_t pid, sid;
@@ -99,10 +100,10 @@ int main (int argc, char **argv)
             config_path = strdup(optarg);
             break;
         case 'w':
-            http_path = strdup(optarg);
+            new_http_path = strdup(optarg);
             break;
         default:
-            fprintf(stderr, "Usage: %s [-m <module-path>] [-c <config-path>] [--debug] [--webserver] [--terminal]\n", argv[0]);
+            fprintf(stderr, "Usage: %s [-m <module-path>] [-c <config-path>] [-w <http-root> ] [--debug] [--webserver] [--terminal]\n", argv[0]);
             exit(1);
         }
     }
@@ -129,8 +130,12 @@ int main (int argc, char **argv)
     	strncpy(server_config.modules_path, new_modules_path, FILEPATH_MAX-1);
     }
 
-    if (server_config.http_root[0] == '\0') {
-        strncpy(server_config.http_root, http_path, FILEPATH_MAX-1);
+    if (new_http_path == NULL) {
+		if (server_config.http_root[0] == '\0') {
+			strncpy(server_config.http_root, http_path, FILEPATH_MAX-1);
+		}
+    } else {
+		strncpy(server_config.http_root, new_http_path, FILEPATH_MAX-1);
     }
 
     if (server_config.http_port[0] == '\0') {
