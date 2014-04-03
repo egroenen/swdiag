@@ -2290,14 +2290,19 @@ void swdiag_obj_db_lock (void)
     if (!obj_db_lock) {
         obj_db_lock = swdiag_xos_critical_section_create();
     }
+    swdiag_debug(NULL, "Entering Mutux %p (%d)", obj_db_lock, obj_db_count);
     swdiag_xos_critical_section_enter(obj_db_lock);
     obj_db_count++;
+    swdiag_debug(NULL, "Obtained Mutux %p (%d)", obj_db_lock, obj_db_count);
+
 }
 
 void swdiag_obj_db_unlock (void)
 {
     obj_db_count--;  
     swdiag_xos_critical_section_exit(obj_db_lock);
+    swdiag_debug(NULL, "Exited Mutux %p (%d)", obj_db_lock, obj_db_count);
+
 }
 
 int swdiag_obj_ut_get_lock_count (void)
