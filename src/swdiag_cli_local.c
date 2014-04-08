@@ -2648,7 +2648,7 @@ cli_obj_name_t *swdiag_cli_local_get_option_tbl (unsigned int handle_id,
             break;
         }    
 
-        swdiag_debug(NULL, "Table: name=%s rel=%d, remote=%d obj=0x%p",
+        swdiag_debug(NULL, "Table: name=%s rel=%d, remote=%d obj=%p",
                      obj->i.name, rel == OBJ_REL_COMP, 
                      obj->remote_location, obj);
 

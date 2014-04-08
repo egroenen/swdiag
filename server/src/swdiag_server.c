@@ -152,6 +152,8 @@ int main (int argc, char **argv)
 
     // Now that the configuration has been read, lets daemonise, if not in terminal mode.
 
+    // TODO - This is not working properly on Linux, gets zombified.
+
     if (!terminal) {
         /* Fork off the parent process */
         pid = fork();

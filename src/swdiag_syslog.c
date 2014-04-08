@@ -42,7 +42,7 @@ void swdiag_xos_trace (trace_event_t *event)
 {
     static boolean initialised = FALSE;
 
-    if (!initialised) {
+    if (!running_in_terminal && !initialised) {
         openlog("swdiag", (LOG_ODELAY | LOG_PID), LOG_LOCAL5);
         initialised = TRUE;
     }
