@@ -98,8 +98,8 @@ static xos_timer_t *start_garbage_collect;
  * GARBAGE_QUEUE_RATE of the queue is less than GARBAGE_QUEUE_FLOOR, then
  * process GARBAGE_QUEUE_FLOOR.
  */
-#define GARBAGE_QUEUE_RATE 30
-#define GARBAGE_QUEUE_FLOOR 10
+#define GARBAGE_QUEUE_RATE 300
+#define GARBAGE_QUEUE_FLOOR 30
 #define GARBAGE_QUEUE_SLEEP 5
 
 /*******************************************************************
@@ -1581,7 +1581,7 @@ boolean swdiag_obj_instance_validate (obj_instance_t *instance,
     boolean retval = TRUE;
     
     if (!instance || instance == (void*)0x0d0d0d0d || !instance->obj) {
-        swdiag_error("Validate:%s: Invalid instance=0x%p",
+        swdiag_error("Validate:%s: Invalid instance=%p",
                      (instance && instance != (void*)0x0d0d0d0d) ? instance->name : "", instance);
         retval = FALSE;
     } else {
@@ -1607,7 +1607,7 @@ boolean swdiag_obj_validate (obj_t *obj, obj_type_t type)
     boolean retval = TRUE;
 
     if (!obj || obj == (void*)0x0d0d0d0d || obj->ident != obj_idents[OBJ_TYPE_NONE]) {
-        swdiag_error("Validate: Invalid object magic obj=0x%p ident=0x%x", 
+        swdiag_error("Validate: Invalid object magic obj=%p ident=0x%x",
                      obj, (obj && obj != (void*)0x0d0d0d0d) ? obj->ident : 0);
         retval = FALSE;
         return(retval);
@@ -1617,7 +1617,7 @@ boolean swdiag_obj_validate (obj_t *obj, obj_type_t type)
      * The ident is in the same place for all object types.
      */
     if (obj->type != OBJ_TYPE_NONE && (!obj->t.test || obj->t.test->ident != obj_idents[obj->type])) {
-        swdiag_error("Validate: Invalid object type magic 0x%p:0x%x", 
+        swdiag_error("Validate: Invalid object type magic %p:0x%x",
                      obj->t.test, obj->t.test ? obj->t.test->ident : 0);
         retval = FALSE;
         return(retval);
@@ -2336,17 +2336,18 @@ static boolean process_freeme_queue (void)
     obj_rule_t *rule;
     obj_action_t *action;
     obj_comp_t *comp;
-    unsigned int counter = 0, process_count;
+    unsigned int counter = 1, process_count;
     
-    process_count = (freeme->num_elements * 100) / GARBAGE_QUEUE_RATE;
+    process_count = ((freeme->num_elements * 100) / GARBAGE_QUEUE_RATE);
+
 
     if (process_count < GARBAGE_QUEUE_FLOOR) {
         process_count = GARBAGE_QUEUE_FLOOR;
     }
 
     swdiag_debug(NULL, 
-                 "Garbage collector starting, %d instances in freeme queue",
-                 freeme->num_elements);
+                 "Garbage collector starting, %d instances in freeme queue (processing=%d in this pass)",
+                 freeme->num_elements, process_count);
 
     while ((instance = swdiag_list_pop(freeme)) != NULL) {
         /*
@@ -2372,7 +2373,7 @@ static boolean process_freeme_queue (void)
 
                 free(instance->name);
                 if (swdiag_obj_is_member_instance(instance)) {
-                    free(instance);
+                	free(instance);
                 } else {
                     obj = instance->obj;
                     if (obj->description) {
@@ -2520,4 +2521,23 @@ void swdiag_obj_init (void)
          swdiag_error("Failed to create garbage detector thread");
          return;
     }
+}
+
+/*
+ * The following functions are for accessing static (private) contents of this module for the
+ * purpose of black box testing this module. They are not to be used outside of unit testing.
+ */
+swdiag_list_t *swdiag_obj_test_get_freeme()
+{
+	return freeme;
+}
+
+swdiag_thread_t *swdiag_obj_test_get_garbage_collector()
+{
+	return garbage_collector;
+}
+
+void swdiag_obj_test_run_garbage_collector()
+{
+	process_freeme_queue();
 }
