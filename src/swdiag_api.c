@@ -2426,7 +2426,7 @@ void swdiag_rule_set_type (const char *rule_name,
                          fnstr, rule_name, operand_n, operand_m);
             return;
         }
-        /* FALLTHRU */
+        /* no break */
     case SWDIAG_RULE_N_IN_TIME_M:
         if (operand_n < 1) {
             swdiag_error("%s - rule '%s' N operand less than 1 (%ld)", 
@@ -3421,8 +3421,7 @@ void swdiag_api_comp_enable_guts (const char *comp_name,
              */
             instance->state = OBJ_STATE_ENABLED;
         }
-        
-        /* FALLTHRU */
+        /* no break */
     case OBJ_STATE_ENABLED:
         /*
          * Ensure that all member objects are enabled as well
@@ -3527,7 +3526,7 @@ void swdiag_api_comp_default (const char *comp_name)
     case OBJ_STATE_ENABLED:
     case OBJ_STATE_DISABLED:
         instance->state = instance->default_state;
-        /* FALLTHRU */
+        /* no break */
     case OBJ_STATE_CREATED:
         /*
          * Clear any configured CLI state
@@ -3670,8 +3669,7 @@ void swdiag_api_comp_disable_guts (const char *comp_name, boolean cli)
              */
             instance->state = OBJ_STATE_DISABLED;
         }
-
-        /* FALLTHRU */
+        /* no break */
     case OBJ_STATE_DISABLED:
         /*
          * Ensure that all member objects are disabled as well
