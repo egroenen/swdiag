@@ -425,8 +425,11 @@ void swdiag_thread_request (thread_function_exe_t execute,
 
 void swdiag_thread_kill (swdiag_thread_t *thread)
 {
+    swdiag_debug(NULL, "Requesting thread %p to quit", thread);
+
     if (thread && thread->xos) {
         thread->quit = TRUE;
+        swdiag_debug(NULL, "Requesting thread %p to quit", thread);
         swdiag_xos_thread_release(thread->xos);
         /*
          * Remove this thread from the free and executing queues
@@ -470,4 +473,35 @@ void swdiag_thread_ut_clear_pending (thread_function_exe_t function)
     throttle_delay = 0;
 
     return;
+}
+
+/***
+ * When shutting down (or during UT) we need to be able to close all
+ * our threads.
+ */
+void swdiag_thread_kill_threads ()
+{
+	swdiag_debug(NULL, "killing all threads in thread pool");
+
+	if (thread_free_queue != NULL) {
+		swdiag_debug(NULL, "killing all threads in thread free pool %p", thread_free_queue);
+
+		// kill off the free threads and pop them from
+		// the queue.
+		swdiag_thread_t *thread;
+		while ((thread = (swdiag_thread_t*)swdiag_list_pop(thread_free_queue)) != NULL) {
+			swdiag_thread_kill(thread);
+		}
+	}
+
+	if (thread_executing_queue != NULL) {
+		swdiag_debug(NULL, "killing all threads in thread executing pool %p", thread_executing_queue);
+
+		// kill off the executing threads and pop them from
+		// the queue.
+		swdiag_thread_t *thread;
+		while ((thread = (swdiag_thread_t*)swdiag_list_pop(thread_executing_queue)) != NULL) {
+			swdiag_thread_kill(thread);
+		}
+	}
 }

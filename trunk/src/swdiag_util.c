@@ -188,18 +188,19 @@ void swdiag_list_insert (swdiag_list_t *list,
         return;
     }
 
+    swdiag_xos_critical_section_enter(list->lock);
+
     /*
      * This check should be removed for performance reasons prior
      * to release.
      */
     if (swdiag_list_find(list, data)) {
         swdiag_error("%s: duplicate element", __FUNCTION__);
+        swdiag_xos_critical_section_exit(list->lock);
         return;
     }
 
     element = new_list_element();
-
-    swdiag_xos_critical_section_enter(list->lock);
 
     head = list->head;
 
@@ -348,11 +349,18 @@ void *swdiag_list_pop (swdiag_list_t *list)
     swdiag_list_element_t *head;
     void *data;
 
-    if (!list || !list->head) {
+    if (!list || !list->head || !list->lock) {
         return(NULL);
     }
+
     swdiag_xos_critical_section_enter(list->lock);
     head = list->head;
+
+    // Check again now that we are in the critical region.
+    if (!head) {
+        swdiag_xos_critical_section_exit(list->lock);
+    	return(NULL);
+    }
 
     list->head = head->next;
 
@@ -398,9 +406,8 @@ boolean swdiag_list_find (swdiag_list_t *list, const void *data)
     boolean retval = FALSE;
 
     if (list) {
-        current = list->head;
-
         swdiag_xos_critical_section_enter(list->lock);
+        current = list->head;
         while(current) {
             if (current->data == data) {
                 retval = TRUE;

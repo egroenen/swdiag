@@ -794,6 +794,7 @@ static boolean rci_map_function (obj_instance_t *instance,
         default:
             swdiag_error("Internal error, found unexpected obj type "
                          "in dependencies");
+			break;
         }
         break;
     case RCI_MAP_COMP_PARENTS:
@@ -808,6 +809,7 @@ static boolean rci_map_function (obj_instance_t *instance,
         default:
             swdiag_error("Internal error, found unexpected obj type "
                          "in dependencies");
+			break;
         }
         break;
     case RCI_MAP_CHILDREN:
@@ -822,6 +824,7 @@ static boolean rci_map_function (obj_instance_t *instance,
         default:
             swdiag_error("Internal error, found unexpected obj type "
                          "in dependencies");
+			break;
         }
         break;
     case RCI_MAP_COMP_CHILDREN:
@@ -836,6 +839,7 @@ static boolean rci_map_function (obj_instance_t *instance,
         default:
             swdiag_error("Internal error, found unexpected obj type "
                          "in dependencies");
+			break;
         }
         break;
     }

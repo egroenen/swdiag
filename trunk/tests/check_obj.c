@@ -106,6 +106,8 @@ START_TEST (test_swdiag_garbage_collector_invalid)
 
 	ck_assert_msg(swdiag_obj_validate(obj, OBJ_TYPE_NONE) == FALSE,
 				"Freed object passed validation");
+
+	// It would be nice to force a sigsegv at this point. Can't do it though.
 }
 END_TEST
 

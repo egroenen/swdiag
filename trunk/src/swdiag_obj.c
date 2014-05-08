@@ -535,18 +535,22 @@ static obj_t *comp_get_next_any (obj_t *obj, obj_comp_t *comp)
         if (comp->nones) {
             return (comp->nones);
         } /* FALLTHRU */
+        /* no break */
     case OBJ_TYPE_NONE:
         if (comp->tests) {
             return (comp->tests);
         } /* FALLTHRU */
+        /* no break */
     case OBJ_TYPE_TEST:
         if (comp->rules) {
             return (comp->rules);
         } /* FALLTHRU */
+        /* no break */
     case OBJ_TYPE_RULE:
         if (comp->actions) {
             return (comp->actions);
         } /* FALLTHRU */
+        /* no break */
     case OBJ_TYPE_ACTION:
         /* FALLTHRU - no more objects in this comp */
     default:
@@ -1939,6 +1943,7 @@ boolean swdiag_obj_validate (obj_t *obj, obj_type_t type)
          */
         swdiag_error("Invalid object type to validate");
         retval = FALSE;
+        break;
     }
 
     /*
