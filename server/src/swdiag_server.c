@@ -59,11 +59,11 @@ int main (int argc, char **argv)
 {
     pthread_t rpc_thread_id;
     int rc;
-    char *modules_path = "/usr/share/swdiag/modules";
+    char *modules_path = "/usr/local/share/swdiag/server/modules";
     char *new_modules_path = NULL;
-    char *config_path = "/etc/swdiag/swdiag.cfg";
+    char *config_path = "/usr/local/etc/swdiag.cfg";
     char *logging_path="/var/log/swdiag.log";
-    char *http_path="/usr/share/swdiag/http";
+    char *http_path="/usr/local/share/swdiag/server/http";
     char *new_http_path = NULL;
     char *http_port="7654";
     int c;
@@ -202,6 +202,11 @@ int main (int argc, char **argv)
 
     //swdiag_api_comp_set_context(SWDIAG_SYSTEM_COMP, NULL);
     //swdiag_set_slave("slave");
+
+    // What we should do here is call swdiag and tell it to block until
+    // it exits. This it should do when all of its threads have exited.
+
+    //swdiag_run();
 
     pthread_exit(NULL);
     return(0);

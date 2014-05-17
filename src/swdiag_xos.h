@@ -125,7 +125,7 @@ typedef enum xos_event_e {
     XOS_EVENT_GUARD_TIMEOUT,
 } xos_event_t;
 
-void swdiag_xos_sleep(uint seconds);
+void swdiag_xos_sleep(uint milliseconds);
 xos_event_t swdiag_xos_wait_on_event(int *detail);
 
 //void xos_wake_on_event_timer(xos_timer_t *timer);

@@ -169,32 +169,37 @@ static void thread_main (swdiag_thread_t *thread)
                     calculate_throttle_delay();
                 }
 
-                // swdiag_debug(NULL, "Thread %s(%d) starting job 0x%x", thread->name, thread->id, thread->job);
-                thread->job->execute(thread, thread->job->context);
-
-                //swdiag_debug(NULL, "Thread %s(%d) completed job", thread->name, thread->id);
                 /*
-                 * Finished, free the job.
+                 * Run the job.
+                 */
+                swdiag_debug(NULL, "Thread %s(%d) starting job %p", thread->name, thread->id, thread->job);
+                thread->job->execute(thread, thread->job->context);
+                swdiag_debug(NULL, "Thread %s(%d) completed job", thread->name, thread->id);
+
+                /*
+                 * Finished, free or recycle the job
                  */
                 if (free_job_requests && 
                     free_job_requests->num_elements < THREAD_REQUEST_LOW_WATER) {
+                	// Recyle the job.
                     swdiag_list_push(free_job_requests, thread->job);
                 } else {
+                	// Free it, we have enough job in the free queue.
                     free(thread->job);
                 }
                 thread->job = NULL;
 
                 /*
-                 * Any other jobs pending?
+                 * Any other jobs pending? Lets do them now.
                  */
                 thread->job = swdiag_list_pop(job_pending_queue);
             }
 
             /*
-             * Remove the thread from the executing queue
+             * No more work to do, Remove the thread from the executing queue
              */
             swdiag_list_remove(thread_executing_queue, thread);
-            swdiag_list_add(thread_free_queue, thread);
+            swdiag_list_push(thread_free_queue, thread);
         } else {
             swdiag_thread_kill(thread);
         }
@@ -400,6 +405,7 @@ void swdiag_thread_request (thread_function_exe_t execute,
         return;
     }
 
+    swdiag_trace(NULL, "thread free queue %d, executing %d", thread_free_queue->num_elements, thread_executing_queue->num_elements);
     thread = swdiag_list_pop(thread_free_queue);
 
     if (thread) {
@@ -414,12 +420,12 @@ void swdiag_thread_request (thread_function_exe_t execute,
             swdiag_thread_kill(thread);
             return;
         }
-        swdiag_list_add(thread_executing_queue, thread);
+        swdiag_list_push(thread_executing_queue, thread);
     } else {
         /*
          * No threads free, add to the pending queue.
          */
-        swdiag_list_add(job_pending_queue, job);
+        swdiag_list_push(job_pending_queue, job);
     }
 }
 

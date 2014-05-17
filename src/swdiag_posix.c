@@ -232,7 +232,7 @@ xos_timer_t *swdiag_xos_timer_create (xos_timer_expiry_fn_t *fn, void *context)
     }
     timer_queue.tail = timer;
 
-    swdiag_debug(NULL, "XOS timer %d created", timer->id);
+    swdiag_debug(NULL, "XOS timer %p created", (void*)timer->id);
     return (timer);
 }
 #elif __APPLE__
@@ -272,8 +272,8 @@ void swdiag_xos_timer_start (xos_timer_t *timer,
 
     timer->started = TRUE;
     if (timer_settime(timer->id, 0, &timer_val, NULL) == -1) {
-        swdiag_error("XOS timer_start(%d) (%lu,%lu) failed (%s)", 
-                     timer->id, delay_sec, delay_nsec, strerror(errno));
+        swdiag_error("XOS timer_start(%p) (%lu,%lu) failed (%s)",
+                     (void*)timer->id, delay_sec, delay_nsec, strerror(errno));
         return;
     }
     //swdiag_debug(NULL, "XOS timer %d started with delay(%lu,%lu)",
@@ -309,7 +309,7 @@ void xos_timer_stop (xos_timer_t *timer)
 void swdiag_xos_timer_delete (xos_timer_t *timer)
 {
     if (timer) {
-        swdiag_debug(NULL, "XOS timer %d deleted", timer->id);
+        swdiag_debug(NULL, "XOS timer %p deleted", (void*)timer->id);
         xos_timer_stop(timer);
         free(timer);
     }
@@ -449,7 +449,7 @@ xos_thread_t *swdiag_xos_thread_create (const char *name,
         swdiag_thread->id = (int)tid;
     }
 
-    swdiag_debug(NULL, "POSIX thread %p created", thread->tid);
+    swdiag_debug(NULL, "POSIX thread %d created", (int)thread->tid);
     return (thread);
 }
 

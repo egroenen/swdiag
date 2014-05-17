@@ -1,6 +1,6 @@
 ## Process this file with automake to produce Makefile.in
 
-##TESTS = check_thread check_util
+##TESTS = check_xos
 TESTS = check_xos check_util check_thread check_obj check_sched 
 check_PROGRAMS = check_xos check_thread check_obj check_sched check_util
 
