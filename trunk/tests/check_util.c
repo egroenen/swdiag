@@ -122,6 +122,8 @@ START_TEST (test_swdiag_util_list)
 	ck_assert(count_free_elements(elements) == 49);
 	ck_assert(list->head != NULL);
 	ck_assert(list->tail != NULL);
+	ck_assert(list->head->next == NULL);
+	ck_assert(list->head == list->tail);
 	ck_assert(list->num_elements == 1);
 
 	/* Try and insert a duplicate element */
@@ -373,7 +375,7 @@ swdaig_xos_test_suite (void)
   /* Core test case */
   TCase *tc_core = tcase_create ("Util lists");
   tcase_add_test(tc_core, test_swdiag_util_list);
-  tcase_add_test(tc_core, test_swdiag_util_list_locking);
+  //tcase_add_test(tc_core, test_swdiag_util_list_locking);
   tcase_set_timeout(tc_core, 10);
   suite_add_tcase (s, tc_core);
 

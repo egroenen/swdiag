@@ -151,7 +151,7 @@ boolean modules_process_config() {
             FILE *fp = popen(filename, "r");
             if (fp != NULL) {
                 size_t newLen = fread(configuration, sizeof(char), MAXBUFLEN, fp);
-                swdiag_trace(NULL, "Reading module configuration '%s', %d bytes read", filename, newLen);
+                swdiag_trace(NULL, "Reading module configuration '%s', %zu bytes read", filename, newLen);
                 if (newLen == 0) {
                     fprintf(stderr, "Error: empty configuration for module file '%s'\n", filename);
                     break;

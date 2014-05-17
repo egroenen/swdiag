@@ -101,7 +101,7 @@ END_TEST
 static void test_func (swdiag_thread_t *thread, void *context)
 {
 	boolean *status = (boolean*)context;
-	swdiag_debug(NULL, "job run %p", context);
+	//swdiag_debug(NULL, "job run %p", context);
 	*status = TRUE;
 	swdiag_xos_sleep(10);
 }

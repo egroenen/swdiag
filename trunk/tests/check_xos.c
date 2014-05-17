@@ -39,6 +39,13 @@
 #include "../src/swdiag_thread.h"
 #include "../src/swdiag_trace.h"
 
+struct xos_thread_t_ {
+    pthread_t tid;
+    pthread_mutex_t run_test_mutex;
+    pthread_cond_t cond;
+    boolean work_to_do;
+};
+
 /*
  * Wake up the kill thread when the timer goes off
  */
@@ -124,7 +131,70 @@ START_TEST (test_swdiag_xos_sleep)
 }
 END_TEST
 
+static int cs_order[2];
 
+static void cs_thread1(swdiag_thread_t *thread)
+{
+	xos_critical_section_t *cs = (void*)thread->job;
+	swdiag_xos_critical_section_enter(cs);
+	swdiag_xos_sleep(5000);
+	if (cs_order[0] == 0) {
+		cs_order[0] = 1;
+	}
+	swdiag_xos_critical_section_exit(cs);
+}
+
+static void cs_thread2(swdiag_thread_t *thread)
+{
+	xos_critical_section_t *cs = (void*)thread->job;
+	swdiag_xos_sleep(2000);
+	swdiag_xos_critical_section_enter(cs);
+	if (cs_order[0] == 0) {
+		cs_order[0] = 2;
+	}
+	swdiag_xos_critical_section_exit(cs);
+}
+
+/*
+ * Test that the critical sections are working between threads. Have two threads one locks
+ * the lock, and then sleeps for 5sec. The second sleeps 2s and then tries to get the lock
+ * record the order that things are run. Make sure that they are in the correct order.
+ */
+START_TEST (test_swdiag_xos_critical_section)
+{
+	static xos_critical_section_t *cs = NULL;
+
+	cs_order[0] = 0;
+
+	cs = swdiag_xos_critical_section_create();
+
+	swdiag_thread_t *thread1 = (swdiag_thread_t *)malloc(sizeof(swdiag_thread_t));
+	thread1->quit = FALSE;
+	thread1->job = (void*)cs;
+	thread1->xos = swdiag_xos_thread_create("CS thread1",
+			cs_thread1,
+			thread1);
+
+	swdiag_thread_t *thread2 = (swdiag_thread_t *)malloc(sizeof(swdiag_thread_t));
+	thread2->quit = FALSE;
+	thread2->job = (void*)cs;
+	thread2->xos = swdiag_xos_thread_create("CS thread2",
+			cs_thread2,
+			thread2);
+
+	void *status;
+
+	pthread_join(thread1->xos->tid, &status);
+	pthread_join(thread2->xos->tid, &status);
+
+	// Check the order that the threads were run, the first thread
+	// with the 5sec delay should have been first, the second should be
+	// blocked on the critical section.
+	ck_assert(cs_order[0] == 1);
+
+
+}
+END_TEST
 
 /*
  * Register the above unit tests.
@@ -138,6 +208,7 @@ swdaig_xos_test_suite (void)
   TCase *tc_core = tcase_create ("XOS Main");
   tcase_add_test(tc_core, test_swdiag_xos_thread_create);
   tcase_add_test(tc_core, test_swdiag_xos_sleep);
+  tcase_add_test(tc_core, test_swdiag_xos_critical_section);
   tcase_set_timeout(tc_core, 25);
   suite_add_tcase (s, tc_core);
 
