@@ -411,6 +411,7 @@ xos_thread_t *swdiag_xos_thread_create (const char *name,
     boolean rc;
     xos_thread_t *thread;
     pthread_t tid;
+    pthread_attr_t attr;
 
     if (!swdiag_thread || !start_fn) {
         return (NULL);
@@ -438,7 +439,10 @@ xos_thread_t *swdiag_xos_thread_create (const char *name,
         return (NULL);
     }
 
-    rc = pthread_create(&tid, NULL, (void*)start_fn, swdiag_thread);
+    pthread_attr_init(&attr);
+    pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
+
+    rc = pthread_create(&tid, &attr, (void*)start_fn, swdiag_thread);
     if (rc) {
         swdiag_error("POSIX thread create failed");
         free(thread);

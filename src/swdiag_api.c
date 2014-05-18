@@ -46,6 +46,12 @@
 
 obj_state_t default_obj_state = OBJ_STATE_ENABLED;
 
+/*
+ * The system is running, setting this to FALSE will cause the system
+ * to stop if it was already running.
+ */
+static boolean running = FALSE;
+
 /*******************************************************************
  * Local functions
  *******************************************************************/
@@ -4041,7 +4047,27 @@ void swdiag_set_slave (const char *component_name)
     swdiag_obj_db_unlock();
 }
 
+void swdiag_run (void)
+{
+	swdiag_trace(NULL, "Starting");
 
+	running = TRUE;
+	while(running) {
+		swdiag_xos_sleep(1000);
+	}
+	swdiag_trace(NULL, "Stopped");
+}
+
+void swdiag_stop (void)
+{
+	swdiag_trace(NULL, "Stopping");
+
+	// notify all of our subsystems to stop their threads, and clean up memory
+
+	// Ensure that the garbage collector cleans up all deleted objects
+
+	running = FALSE;
+}
 /* Enable or Disable test notification.
  * 
  * API which can be used if user wishes to receive notification from swdiag if

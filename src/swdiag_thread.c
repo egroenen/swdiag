@@ -405,7 +405,7 @@ void swdiag_thread_request (thread_function_exe_t execute,
         return;
     }
 
-    swdiag_trace(NULL, "thread free queue %d, executing %d", thread_free_queue->num_elements, thread_executing_queue->num_elements);
+    //swdiag_trace(NULL, "thread free queue %d, executing %d", thread_free_queue->num_elements, thread_executing_queue->num_elements);
     thread = swdiag_list_pop(thread_free_queue);
 
     if (thread) {
