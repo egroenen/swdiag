@@ -1403,5 +1403,14 @@ unsigned int swdiag_health_get(const char *component_name);
  */
 void *swdiag_get_context(const char *obj_name);
 
+/** Loop until the system exits
+ *
+ */
+void swdiag_run(void);
+
+/** Stop the system
+ *
+ */
+void swdiag_stop(void);
 /*@}*/
 #endif 

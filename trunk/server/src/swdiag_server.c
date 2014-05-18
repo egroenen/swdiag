@@ -37,6 +37,7 @@
 #include <unistd.h>
 #include <syslog.h>
 #include <string.h>
+#include <signal.h>
 
 #include "swdiag_client.h"
 #include "swdiag_sched.h"
@@ -52,6 +53,71 @@ int debug_flag = 0;
 int terminal = 0;
 int webserver = 0;
 
+static void daemonise() {
+    // Fork, allowing the parent process to terminate.
+    pid_t pid = fork();
+    if (pid == -1) {
+        swdiag_error("failed to fork while daemonising (errno=%d)",errno);
+    } else if (pid != 0) {
+        _exit(0);
+    }
+
+    // Start a new session for the daemon.
+    if (setsid()==-1) {
+        swdiag_error("failed to become a session leader while daemonising(errno=%d)",errno);
+    }
+
+    // Fork again, allowing the parent process to terminate.
+    signal(SIGHUP,SIG_IGN);
+    pid=fork();
+    if (pid == -1) {
+        swdiag_error("failed to fork while daemonising (errno=%d)",errno);
+    } else if (pid != 0) {
+        _exit(0);
+    }
+
+    // Set the current working directory to the root directory.
+    if (chdir("/") == -1) {
+        swdiag_error("failed to change working directory while daemonising (errno=%d)",errno);
+    }
+
+    // Set the user file creation mask to zero.
+    umask(0);
+
+    // Close then reopen standard file descriptors.
+    close(STDIN_FILENO);
+    close(STDOUT_FILENO);
+    close(STDERR_FILENO);
+    if (open("/dev/null",O_RDONLY) == -1) {
+        swdiag_error("failed to reopen stdin while daemonising (errno=%d)",errno);
+    }
+    if (open("/dev/null",O_WRONLY) == -1) {
+        swdiag_error("failed to reopen stdout while daemonising (errno=%d)",errno);
+    }
+    if (open("/dev/null",O_RDWR) == -1) {
+        swdiag_error("failed to reopen stderr while daemonising (errno=%d)",errno);
+    }
+}
+
+static void handle_signal(int signal) {
+	if (signal == SIGTERM) {
+		swdiag_stop();
+	}
+}
+
+static void install_signal_handler() {
+	struct sigaction sa;
+
+	sa.sa_handler = &handle_signal;
+	sa.sa_flags = SA_RESTART;
+
+	// Block every signal during the handler
+	sigfillset(&sa.sa_mask);
+
+	if (sigaction(SIGTERM, &sa, NULL) == -1) {
+		swdiag_error("Error: cannot handle SIGTERM"); // Should not happen
+	}
+}
 /**
  * The server
  */
@@ -108,6 +174,12 @@ int main (int argc, char **argv)
         }
     }
 
+    if (!terminal) {
+    	daemonise();
+    }
+
+	install_signal_handler();
+
     if (debug_flag) {
         swdiag_debug_enable();
     }
@@ -150,46 +222,6 @@ int main (int argc, char **argv)
         exit(2);
     }
 
-    // Now that the configuration has been read, lets daemonise, if not in terminal mode.
-
-    // TODO - This is not working properly on Linux, gets zombified.
-
-    if (!terminal) {
-        /* Fork off the parent process */
-        pid = fork();
-        if (pid < 0) {
-            exit(EXIT_FAILURE);
-        }
-        /* If we got a good PID, then
-           we can exit the parent process. */
-        if (pid > 0) {
-            exit(EXIT_SUCCESS);
-        }
-
-        /* Change the file mode mask */
-        umask(0);
-
-        /* Open any logs here */
-
-        /* Create a new SID for the child process */
-        sid = setsid();
-        if (sid < 0) {
-            /* Log the failure */
-            exit(EXIT_FAILURE);
-        }
-
-        /* Change the current working directory */
-        if ((chdir("/")) < 0) {
-            /* Log the failure */
-            exit(EXIT_FAILURE);
-        }
-
-        /* Close out the standard file descriptors */
-        close(STDIN_FILENO);
-        close(STDOUT_FILENO);
-        close(STDERR_FILENO);
-    }
-
     // Starting server here...
     swdiag_sched_initialize();
 
@@ -203,12 +235,8 @@ int main (int argc, char **argv)
     //swdiag_api_comp_set_context(SWDIAG_SYSTEM_COMP, NULL);
     //swdiag_set_slave("slave");
 
-    // What we should do here is call swdiag and tell it to block until
-    // it exits. This it should do when all of its threads have exited.
+    swdiag_run();
 
-    //swdiag_run();
-
-    pthread_exit(NULL);
     return(0);
 }
 
