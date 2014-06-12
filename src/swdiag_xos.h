@@ -65,7 +65,7 @@ typedef void (xos_thread_start_fn_t)(swdiag_thread_t *thread);
 xos_thread_t *swdiag_xos_thread_create(const char *name,
                                        xos_thread_start_fn_t *start_routine,
                                  swdiag_thread_t *swdiag_thread);
-boolean swdiag_xos_thread_destroy(xos_thread_t *thread);
+boolean swdiag_xos_thread_destroy(swdiag_thread_t *swdiag_thread);
 boolean swdiag_xos_thread_wait(xos_thread_t *thread);
 boolean swdiag_xos_thread_release(xos_thread_t *thread);
 void swdiag_xos_thread_suspend(xos_thread_t *thread);

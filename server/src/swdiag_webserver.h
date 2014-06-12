@@ -27,6 +27,7 @@
 #ifndef SWDIAG_SERVER_MODULE_H_
 #define SWDIAG_SERVER_MODULE_H_
 
-extern boolean webserver_start(void);
+extern boolean swdiag_webserver_start(void);
+extern void swdiag_webserver_stop(void);
 
 #endif /* SWDIAG_SERVER_MODULE_H_ */

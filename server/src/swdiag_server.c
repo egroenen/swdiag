@@ -53,7 +53,13 @@ int debug_flag = 0;
 int terminal = 0;
 int webserver = 0;
 
-static void daemonise() {
+static char *DEFAULT_MODULES_PATH = "/usr/local/share/swdiag/server/modules";
+static char *DEFAULT_CONFIG_PATH = "/usr/local/etc/swdiag.cfg";
+static char *DEFAULT_LOGGING_PATH = "/var/log/swdiag.log";
+static char *DEFAULT_HTTP_PATH = "/usr/local/share/swdiag/server/http";
+
+static void daemonise()
+{
     // Fork, allowing the parent process to terminate.
     pid_t pid = fork();
     if (pid == -1) {
@@ -99,13 +105,18 @@ static void daemonise() {
     }
 }
 
-static void handle_signal(int signal) {
-	if (signal == SIGTERM) {
+static void handle_signal(int signal)
+{
+	if (signal == SIGTERM || signal == SIGINT) {
+		if (webserver) {
+			swdiag_webserver_stop();
+		}
 		swdiag_stop();
 	}
 }
 
-static void install_signal_handler() {
+static void install_signal_handler()
+{
 	struct sigaction sa;
 
 	sa.sa_handler = &handle_signal;
@@ -117,6 +128,10 @@ static void install_signal_handler() {
 	if (sigaction(SIGTERM, &sa, NULL) == -1) {
 		swdiag_error("Error: cannot handle SIGTERM"); // Should not happen
 	}
+
+	if (sigaction(SIGINT, &sa, NULL) == -1) {
+		swdiag_error("Error: cannot handle SIGTERM"); // Should not happen
+	}
 }
 /**
  * The server
@@ -125,12 +140,9 @@ int main (int argc, char **argv)
 {
     pthread_t rpc_thread_id;
     int rc;
-    char *modules_path = "/usr/local/share/swdiag/server/modules";
-    char *new_modules_path = NULL;
-    char *config_path = "/usr/local/etc/swdiag.cfg";
-    char *logging_path="/var/log/swdiag.log";
-    char *http_path="/usr/local/share/swdiag/server/http";
-    char *new_http_path = NULL;
+    char *modules_path = NULL;
+    char *config_path = NULL;
+    char *http_path = NULL;
     char *http_port="7654";
     int c;
     pid_t pid, sid;
@@ -159,19 +171,22 @@ int main (int argc, char **argv)
                 break;
             break;
         case 'm':
-            // TODO free these
-            new_modules_path = strdup(optarg);
+            modules_path = strdup(optarg);
             break;
         case 'c':
             config_path = strdup(optarg);
             break;
         case 'w':
-            new_http_path = strdup(optarg);
+            http_path = strdup(optarg);
             break;
         default:
             fprintf(stderr, "Usage: %s [-m <module-path>] [-c <config-path>] [-w <http-root> ] [--debug] [--webserver] [--terminal]\n", argv[0]);
             exit(1);
         }
+    }
+
+    if (!config_path) {
+    	config_path = strdup(DEFAULT_CONFIG_PATH);
     }
 
     if (!terminal) {
@@ -190,24 +205,28 @@ int main (int argc, char **argv)
 
     config_parse(config_path);
 
+    free(config_path);
+
     if (server_config.smtp_hostname[0] == '\0') {
         strncpy(server_config.smtp_hostname, "localhost", HOSTNAME_MAX-1);
     }
 
-    if (new_modules_path == NULL) {
+    if (modules_path == NULL) {
     	if (server_config.modules_path[0] == '\0') {
-    		strncpy(server_config.modules_path, modules_path, FILEPATH_MAX-1);
+    		strncpy(server_config.modules_path, DEFAULT_MODULES_PATH, FILEPATH_MAX-1);
     	}
     } else {
-    	strncpy(server_config.modules_path, new_modules_path, FILEPATH_MAX-1);
+    	strncpy(server_config.modules_path, modules_path, FILEPATH_MAX-1);
+    	free(modules_path);
     }
 
-    if (new_http_path == NULL) {
+    if (http_path == NULL) {
 		if (server_config.http_root[0] == '\0') {
-			strncpy(server_config.http_root, http_path, FILEPATH_MAX-1);
+			strncpy(server_config.http_root, DEFAULT_HTTP_PATH, FILEPATH_MAX-1);
 		}
     } else {
-		strncpy(server_config.http_root, new_http_path, FILEPATH_MAX-1);
+		strncpy(server_config.http_root, http_path, FILEPATH_MAX-1);
+		free(http_path);
     }
 
     if (server_config.http_port[0] == '\0') {
@@ -222,9 +241,6 @@ int main (int argc, char **argv)
         exit(2);
     }
 
-    // Starting server here...
-    swdiag_sched_initialize();
-
     if (webserver && !swdiag_webserver_start()) {
         fprintf(stderr, "ERROR: Failed to start the webserver, exiting. Do you have another instance of the swdiag-server already running?\n");
         exit(2);
@@ -235,7 +251,7 @@ int main (int argc, char **argv)
     //swdiag_api_comp_set_context(SWDIAG_SYSTEM_COMP, NULL);
     //swdiag_set_slave("slave");
 
-    swdiag_run();
+    swdiag_start();
 
     return(0);
 }

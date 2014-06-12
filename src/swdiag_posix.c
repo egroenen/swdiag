@@ -460,25 +460,33 @@ xos_thread_t *swdiag_xos_thread_create (const char *name,
 /*
  * Destroy another thread given by the parameter.
  */
-boolean swdiag_xos_thread_destroy (xos_thread_t *thread)
+boolean swdiag_xos_thread_destroy (swdiag_thread_t *swdiag_thread)
 {
     int rc;
     int tid;
+    xos_thread_t *thread;
 
-    if (!thread) {
+    if (!swdiag_thread) {
         swdiag_error("POSIX thread destroy");
         return (FALSE);
     }
 
-    tid = thread->tid;
-    rc = pthread_cancel(tid);
-    if (rc) {
-        swdiag_debug(NULL, "POSIX destroy %d failed with %d", tid, rc);
-        return (FALSE);
-    }
+    thread = swdiag_thread->xos;
+
+    // Cancelling a pthread is error prone, better to signal the thread
+    // to quit itself, so this is commented out now.
+
+//    tid = thread->tid;
+//    rc = pthread_cancel(tid);
+//    if (rc) {
+//        swdiag_debug(NULL, "POSIX destroy %d failed with %d", tid, rc);
+//        return (FALSE);
+//    }
 
     free(thread);
     swdiag_debug(NULL, "POSIX thread %d destroyed", tid);
+
+    free(swdiag_thread->name);
     return (TRUE);
 }
 
@@ -545,7 +553,7 @@ boolean swdiag_xos_thread_release (xos_thread_t *thread)
     }
 
     if (thread->work_to_do) {
-        swdiag_error("POSIX thread already running");
+        swdiag_debug(NULL, "POSIX thread already running");
         pthread_mutex_unlock(&thread->run_test_mutex);
         return (FALSE);
     }

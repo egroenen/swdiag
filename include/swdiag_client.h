@@ -1406,7 +1406,7 @@ void *swdiag_get_context(const char *obj_name);
 /** Loop until the system exits
  *
  */
-void swdiag_run(void);
+void swdiag_start(void);
 
 /** Stop the system
  *

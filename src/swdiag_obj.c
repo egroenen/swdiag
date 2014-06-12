@@ -2478,6 +2478,10 @@ static void garbage_collector_main (swdiag_thread_t *thread)
 
     while (!thread->quit) {
         swdiag_xos_thread_wait(thread->xos);
+
+        if (thread->quit) {
+        	continue;
+        }
         if (process_freeme_queue()) {
             /*
              * Finished all queue processing, we can wait a while before 
@@ -2495,6 +2499,10 @@ static void garbage_collector_main (swdiag_thread_t *thread)
         }
         swdiag_cli_local_handle_free_garbage();
     }
+
+    swdiag_xos_thread_destroy(garbage_collector);
+    free(garbage_collector);
+    garbage_collector = NULL;
 }
 
 /*
@@ -2528,6 +2536,20 @@ void swdiag_obj_init (void)
     }
 }
 
+/*
+ * Run the garbage collector and terminate it
+ */
+void swdiag_obj_terminate (void)
+{
+	if (garbage_collector) {
+		swdiag_thread_kill(garbage_collector);
+		swdiag_xos_sleep(1);
+	}
+
+
+	swdiag_list_free(freeme);
+	freeme = NULL;
+}
 /*
  * The following functions are for accessing static (private) contents of this module for the
  * purpose of black box testing this module. They are not to be used outside of unit testing.

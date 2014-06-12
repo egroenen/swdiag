@@ -84,6 +84,7 @@ struct swdiag_thread_s {
 };
 
 extern void swdiag_thread_init(void);
+extern void swdiag_thread_terminate(void);
 extern void swdiag_thread_request(thread_function_exe_t execute, 
                                   thread_function_dsp_t display,
                                   void *context);
